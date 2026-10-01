@@ -24,6 +24,11 @@ export const ASSETS = {
   towerLow: '/assets/architecture/tower-lod1.glb',
   treeLow: '/assets/vegetation/blossom-tree-lod1.glb',
   flowersLow: '/assets/vegetation/flower-patch-lod1.glb',
+  bistroExteriorLod0: '/assets/architecture/blossom_bistro_exterior_lod0.glb',
+  bistroExteriorLod1: '/assets/architecture/blossom_bistro_exterior_lod1.glb',
+  bistroExteriorLod2: '/assets/architecture/blossom_bistro_exterior_lod2.glb',
+  bistroInterior: '/assets/interiors/blossom_bistro_interior.glb',
+  bistroCup: '/assets/props/blossom_tea_cup.glb',
 }
 
 interface AssetPart { geometry: THREE.BufferGeometry; material: THREE.Material | THREE.Material[]; matrix: THREE.Matrix4 }
@@ -78,18 +83,30 @@ export function Asset({ name, position = [0, 0, 0], rotation = 0, scale = 1, lit
   name: keyof typeof ASSETS; position?: [number, number, number]; rotation?: number; scale?: number; lite?: boolean
 }) {
   const gltf = useLoader(GLTFLoader, ASSETS[name])
+  const isTextured = useMemo(() => {
+    let textured = false
+    gltf.scene.traverse(child => {
+      if (child instanceof THREE.Mesh) {
+        const mat = Array.isArray(child.material) ? child.material[0] : child.material
+        if (mat && 'map' in mat && mat.map) textured = true
+      }
+    })
+    return textured
+  }, [gltf])
+
   const object = useMemo(() => {
-    if (lite) return null
+    if (lite && !isTextured) return null
     const copy = clone(gltf.scene)
     copy.traverse(child => {
       if (child instanceof THREE.Mesh) {
-        child.castShadow = true
-        child.receiveShadow = true
+        child.castShadow = !lite
+        child.receiveShadow = !lite
       }
     })
     return copy
-  }, [gltf, lite])
-  if (lite) {
+  }, [gltf, lite, isTextured])
+
+  if (lite && !isTextured) {
     const part = colourBatch(gltf.scene)
     return <mesh geometry={part.geometry} material={part.material} position={position} rotation-y={rotation} scale={scale} castShadow receiveShadow dispose={null} />
   }

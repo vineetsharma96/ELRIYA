@@ -8,7 +8,10 @@ import { Ambience } from './audio'
 import { createSimulation, stepSimulation } from '../core/simulation'
 import { createInput, type InputController } from '../core/input'
 import { createQualityState, getQualitySettings, resetQualitySampling, setQualityMode, updateAdaptiveQuality, type QualitySettings } from '../core/quality'
-import { WORLD, getLandmark } from '../core/world'
+import { WORLD, getLandmark, CAMERA_OBSTACLES_3D } from '../core/world'
+import { createBistroEncounter, DEFAULT_BISTRO_ANCHORS } from '../core/bistroEncounter'
+import { BistroVisibilityManager } from './bistroVisibility'
+import { IndoorCameraController } from './indoorCamera'
 import { INITIAL_SNAPSHOT, type WorldCanvasProps, type WorldSnapshot } from './types'
 
 const CAMERA = { position: [12, 13, 31] as [number, number, number], fov: 46, near: 0.2, far: 220 }
@@ -33,6 +36,11 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
   const { camera, gl, scene, setDpr } = useThree()
   const simulation = useMemo(createSimulation, [])
   const quality = useMemo(() => createQualityState(qualityMode), [])
+  const bistroEncounter = useMemo(createBistroEncounter, [])
+  const indoorCameraController = useMemo(() => new IndoorCameraController(), [])
+  const cupRef = useRef<THREE.Group>(null!)
+  const bistroInteriorRef = useRef<THREE.Group>(null!)
+  const bistroVisibility = useMemo(() => new BistroVisibilityManager(), [])
   const [settings, setSettings] = useState(() => getQualitySettings(quality))
   const input = useRef<InputController | null>(null)
   const wind = useMemo(() => ({ value: 0.6, time: 0 }), [])
@@ -52,7 +60,10 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
   const nightUniforms = useRef<{ value: number }[]>([])
   const water = useMemo(createCanalMaterial, [])
   const movement = useMemo(() => ({ target: new THREE.Vector3(0, 1.4, 12), desired: new THREE.Vector3(), direction: new THREE.Vector3(), ray: new THREE.Ray(), hit: new THREE.Vector3(), sky: new THREE.Color(), sun: new THREE.Color() }), [])
-  const collisionBoxes = useMemo(() => WORLD.colliders.slice(0, 3).map((b, i) => new THREE.Box3(new THREE.Vector3(b.x - b.halfX - 0.8, 0, b.z - b.halfZ - 0.8), new THREE.Vector3(b.x + b.halfX + 0.8, [8, 14, 22][i], b.z + b.halfZ + 0.8))), [])
+  const collisionBoxes = useMemo(() => CAMERA_OBSTACLES_3D.map(b => new THREE.Box3(
+    new THREE.Vector3(b.min[0], b.min[1], b.min[2]),
+    new THREE.Vector3(b.max[0], b.max[1], b.max[2])
+  )), [])
   const profile = useRef({ intervals: [] as number[], lastEmission: 0, skipNext: false })
   useEffect(() => {
     const changed = () => { profile.current.skipNext = true; profile.current.intervals = []; resetQualitySampling(quality) }
@@ -126,11 +137,18 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
         const landmark = simulation.nearLandmark ? getLandmark(simulation.nearLandmark) : null
         return landmark ? `${landmark.name} — ${landmark.description}` : null
       },
+      interactBistro: () => {
+        const p = { x: simulation.player.x, z: simulation.player.z }
+        const state = bistroEncounter.getState(p)
+        if (state.canPickup || state.canReturn) return bistroEncounter.interact(p)
+        return null
+      },
+      cancelBistro: () => bistroEncounter.cancel(),
       setVirtual: value => input.current?.setVirtual(value),
       getSnapshot: () => snapshot.current,
     }
     return () => { apiRef.current = null }
-  }, [apiRef, input, simulation, wind])
+  }, [apiRef, input, simulation, wind, bistroEncounter])
   useEffect(() => {
     const canvas = gl.domElement
     let pointer: number | null = null
@@ -202,9 +220,11 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
     const follow = cameraMode === 'follow'
     const target = movement.target
     const smooth = 1 - Math.exp(-delta * 5)
-    target.lerp(movement.desired.set(follow ? p.x - Math.sin(orbit.current.yaw) * 3 : 0, follow ? 1.4 + p.y * 0.5 : 1.5, follow ? p.z - Math.cos(orbit.current.yaw) * 3 : -6), smooth)
+    const indoorResult = indoorCameraController.update(p, delta)
+    const lookAhead = follow ? 3 * (1 - indoorResult.indoorRatio) : 0
+    target.lerp(movement.desired.set(follow ? p.x - Math.sin(orbit.current.yaw) * lookAhead : 0, follow ? 1.4 + p.y * 0.5 : 1.5, follow ? p.z - Math.cos(orbit.current.yaw) * lookAhead : -6), smooth)
     const yaw = follow ? orbit.current.yaw : orbit.current.yaw + Math.sin(simulation.elapsed * 0.018) * 0.4
-    const distance = follow ? orbit.current.distance : 64
+    const distance = follow ? THREE.MathUtils.lerp(orbit.current.distance, indoorResult.distance, indoorResult.indoorRatio) : 64
     const pitch = follow ? orbit.current.pitch : 0.63
     movement.desired.set(target.x + Math.sin(yaw) * Math.cos(pitch) * distance, target.y + Math.sin(pitch) * distance, target.z + Math.cos(yaw) * Math.cos(pitch) * distance)
     if (follow) {
@@ -213,12 +233,29 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
       let limit = distance
       for (const box of collisionBoxes) {
         const hit = movement.ray.intersectBox(box, movement.hit)
-        if (hit) limit = Math.min(limit, Math.max(3.5, target.distanceTo(hit) - 0.5))
+        if (hit) limit = Math.min(limit, Math.max(0.15, target.distanceTo(hit) - 0.15))
       }
       movement.desired.copy(target).addScaledVector(movement.direction, limit)
     }
     camera.position.lerp(movement.desired, 1 - Math.exp(-delta * 7))
     camera.lookAt(target)
+    if (avatar.current) {
+      avatar.current.visible = camera.position.distanceTo(target) > 0.85
+    }
+
+    const encounter = bistroEncounter.getState({ x: p.x, z: p.z })
+    if (cupRef.current) {
+      if (encounter.cupState === 'carried') {
+        cupRef.current.position.set(p.x + Math.sin(p.yaw) * 0.4, p.y + 0.85, p.z + Math.cos(p.yaw) * 0.4)
+      } else if (encounter.cupState === 'returned') {
+        cupRef.current.position.set(DEFAULT_BISTRO_ANCHORS.returnTray.x, DEFAULT_BISTRO_ANCHORS.returnTray.height, DEFAULT_BISTRO_ANCHORS.returnTray.z)
+      } else {
+        cupRef.current.position.set(DEFAULT_BISTRO_ANCHORS.tableA.x, DEFAULT_BISTRO_ANCHORS.tableA.height, DEFAULT_BISTRO_ANCHORS.tableA.z)
+      }
+    }
+    if (bistroInteriorRef.current) {
+      bistroInteriorRef.current.visible = bistroVisibility.shouldRenderInterior({ x: camera.position.x, z: camera.position.z })
+    }
 
     const now = performance.now()
     const measuredMs = rawDelta * 1000
@@ -242,6 +279,9 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
         npcCount: settings.npcCount, petalCount: settings.petalCount,
         activeQuality: quality.tier, renderScale: gl.getPixelRatio(), wind: wind.value,
         backend: 'WebGL2', lighting: 'Hemisphere ambient + sun',
+        bistroPrompt: encounter.promptText,
+        bistroCanCancel: encounter.cupState === 'carried',
+        bistroUnlocked: bistroEncounter.isUnlocked(),
       }
       onSnapshotRef.current(snapshot.current)
     }
@@ -256,11 +296,12 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
       shadow-camera-near={1} shadow-camera-far={150} shadow-normalBias={0.045} shadow-bias={-0.00012} />
     <mesh ref={sunDisc}><sphereGeometry args={[5, 16, 12]} /><meshBasicMaterial color="#fff0c5" fog={false} /></mesh>
     <mesh ref={moonDisc}><sphereGeometry args={[3.6, 16, 12]} /><meshBasicMaterial color="#e6e9ec" fog={false} /></mesh>
-    <Terrain vegetationDensity={settings.vegetationDensity} lowDetail={quality.tier === 'LOW' || quality.tier === 'LITE'} wind={wind} />
+    <Terrain vegetationDensity={settings.vegetationDensity} lowDetail={quality.tier === 'LOW' || quality.tier === 'LITE'} wind={wind} bistroInteriorRef={bistroInteriorRef} />
     {[-23, 23].map(x => <mesh key={x} position={[x, 0.016, -27]} rotation-x={-Math.PI / 2} material={water}><planeGeometry args={[38, 7.8]} /></mesh>)}
     <group ref={avatar}><Asset name="protagonist" lite={quality.tier === 'LOW' || quality.tier === 'LITE'} /></group>
     <group ref={companion}><Asset name="companion" lite={quality.tier === 'LOW' || quality.tier === 'LITE'} /></group>
     <group ref={shuttle}><Asset name="shuttle" lite={quality.tier === 'LOW' || quality.tier === 'LITE'} /></group>
+    <group ref={cupRef}><Asset name="bistroCup" lite={quality.tier === 'LOW' || quality.tier === 'LITE'} /></group>
     <Citizens simulation={simulation} count={settings.npcCount} lite={quality.tier === 'LOW' || quality.tier === 'LITE'} />
     <Petals count={settings.petalCount} simulation={simulation} wind={wind} />
   </>

@@ -1,4 +1,5 @@
 import type { Collider, Landmark, Point2 } from './types';
+import bistroContract from '../../public/assets/architecture/blossom_bistro_contract.json';
 
 export const SEED = 240924;
 
@@ -22,8 +23,53 @@ const landmarks: Landmark[] = [
   { id: 'hidden-garden', name: 'Pocket Garden', kind: 'garden', x: -26, z: 19, radius: 6, description: 'A quiet patch of flowers, tucked just off the promenade.' },
 ];
 
+const bistroPosX = bistroContract.placement.position[0];
+const bistroPosY = bistroContract.placement.position[1];
+const bistroPosZ = bistroContract.placement.position[2];
+
+export interface BoxCollider3D {
+  id: string;
+  min: [number, number, number];
+  max: [number, number, number];
+  cameraOnly?: boolean;
+}
+
+// Coordinate transform for rotationY = Math.PI, translation = [bistroPosX, bistroPosY, bistroPosZ]
+// x_w = bistroPosX - x_l
+// y_w = bistroPosY + y_l
+// z_w = bistroPosZ - z_l
+export const BISTRO_COLLIDERS_3D: BoxCollider3D[] = bistroContract.colliders.map(c => {
+  const minX = Math.min(bistroPosX - c.min[0], bistroPosX - c.max[0]);
+  const maxX = Math.max(bistroPosX - c.min[0], bistroPosX - c.max[0]);
+  const minY = bistroPosY + c.min[1];
+  const maxY = bistroPosY + c.max[1];
+  const minZ = Math.min(bistroPosZ - c.min[2], bistroPosZ - c.max[2]);
+  const maxZ = Math.max(bistroPosZ - c.min[2], bistroPosZ - c.max[2]);
+  return {
+    id: c.id,
+    min: [minX, minY, minZ],
+    max: [maxX, maxY, maxZ],
+    cameraOnly: Boolean((c as { cameraOnly?: boolean }).cameraOnly),
+  };
+});
+
+const bistroGroundColliders: Collider[] = BISTRO_COLLIDERS_3D
+  .filter(c => !c.cameraOnly)
+  .map(c => ({
+    x: (c.min[0] + c.max[0]) / 2,
+    z: (c.min[2] + c.max[2]) / 2,
+    halfX: (c.max[0] - c.min[0]) / 2,
+    halfZ: (c.max[2] - c.min[2]) / 2,
+  }));
+
+export const CAMERA_OBSTACLES_3D: BoxCollider3D[] = [
+  ...BISTRO_COLLIDERS_3D,
+  { id: 'aurora-residences', min: [16 - 4 - 0.8, 0, -14 - 3.5 - 0.8], max: [16 + 4 + 0.8, 14, -14 + 3.5 + 0.8] },
+  { id: 'cloudline-tower', min: [25 - 3.5 - 0.8, 0, 12 - 3.5 - 0.8], max: [25 + 3.5 + 0.8, 22, 12 + 3.5 + 0.8] },
+];
+
 const colliders: Collider[] = [
-  { x: -15, z: -10, halfX: 4.5, halfZ: 3.5 },
+  ...bistroGroundColliders,
   { x: 16, z: -14, halfX: 4, halfZ: 3.5 },
   { x: 25, z: 12, halfX: 3.5, halfZ: 3.5 },
   { x: 0, z: -5, halfX: 3, halfZ: 3 },

@@ -38,19 +38,27 @@ describe('player controller', () => {
 
   it('blocks a building while preserving movement along its wall', () => {
     const state = createSimulation();
-    state.player.x = -10;
-    state.player.z = -10;
-    advance(state, 0.5, { moveX: -1, moveZ: 1 });
-    expect(state.player.x).toBeGreaterThanOrEqual(-10.5 + PLAYER_RADIUS - 0.0001);
-    expect(state.player.z).toBeLessThan(-11);
+    state.player.x = 11;
+    state.player.z = -14;
+    advance(state, 0.5, { moveX: 1, moveZ: 1 });
+    expect(state.player.x).toBeLessThanOrEqual(12 - PLAYER_RADIUS + 0.0001);
+    expect(state.player.z).toBeLessThan(-15);
   });
 
-  it('cannot tunnel through a building even after repeated long frames', () => {
-    const state = createSimulation();
-    state.player.x = -15;
-    state.player.z = 0;
-    for (let i = 0; i < 100; i++) stepSimulation(state, { ...EMPTY_INPUT, moveZ: 1, sprint: true }, 10);
-    expect(state.player.z).toBeCloseTo(-6.5 + PLAYER_RADIUS, 5);
+  it('cannot tunnel through a building wall even after repeated long frames, but permits doorway entrance', () => {
+    // Wall collision at front-left wall (X = -13)
+    const wallState = createSimulation();
+    wallState.player.x = -13;
+    wallState.player.z = 0;
+    for (let i = 0; i < 100; i++) stepSimulation(wallState, { ...EMPTY_INPUT, moveZ: 1, sprint: true }, 10);
+    expect(wallState.player.z).toBeCloseTo(-6.5 + PLAYER_RADIUS, 5);
+
+    // Doorway opening at X = -15 allows walking into the interior
+    const doorState = createSimulation();
+    doorState.player.x = -15;
+    doorState.player.z = 0;
+    advance(doorState, 2, { moveZ: 1 });
+    expect(doorState.player.z).toBeLessThan(-6.7);
   });
 
   it('permits the bridge but blocks water and world edges', () => {

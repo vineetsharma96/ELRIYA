@@ -151,7 +151,7 @@ try {
   checks.push('390×844 mobile layout, actual touch joystick, and map controls')
   await mobile.close()
   const failed = await browser.newPage({ viewport: { width: 1100, height: 750 } })
-  await failed.route('**/assets/architecture/cafe-lod1.glb', route => route.abort())
+  await failed.route('**/assets/architecture/blossom_bistro_exterior_lod1.glb', route => route.abort())
   await failed.goto(`${baseUrl}/?quality=LITE`, { waitUntil: 'networkidle' })
   await failed.getByRole('alert').waitFor({ timeout: 30000 })
   if (await failed.getByText('Preparing your little corner…').isVisible()) throw new Error('Loading overlay masks asset error')

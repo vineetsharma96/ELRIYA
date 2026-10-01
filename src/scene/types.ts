@@ -1,5 +1,6 @@
 import type { QualityMode } from '../core/quality'
 import type { RefObject } from 'react'
+import type { BistroActionResult } from '../core/bistroEncounter'
 
 export type CameraMode = 'follow' | 'vista'
 export interface WorldSnapshot {
@@ -20,12 +21,17 @@ export interface WorldSnapshot {
   wind: number
   backend: string
   lighting: string
+  bistroPrompt?: string | null
+  bistroCanCancel?: boolean
+  bistroUnlocked?: boolean
 }
 export interface WorldApi {
   setTime(hours: number): void
   setWind(strength: number): void
   resetPlayer(): void
   interact(): string | null
+  interactBistro(): BistroActionResult
+  cancelBistro(): boolean
   setVirtual(input: { moveX?: number; moveZ?: number; sprint?: boolean; jump?: boolean }): void
   getSnapshot(): WorldSnapshot
 }

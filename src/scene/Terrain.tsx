@@ -47,7 +47,17 @@ function StaticPaving() {
   return <BoxBatch placements={batches} />
 }
 
-export function Terrain({ vegetationDensity, lowDetail, wind }: { vegetationDensity: number; lowDetail: boolean; wind: WindField }) {
+export function Terrain({
+  vegetationDensity,
+  lowDetail,
+  wind,
+  bistroInteriorRef,
+}: {
+  vegetationDensity: number;
+  lowDetail: boolean;
+  wind: WindField;
+  bistroInteriorRef?: React.Ref<THREE.Group>;
+}) {
   const trees = useMemo(() => [...WORLD.trees].sort((a, b) => Math.hypot(a.x - WORLD.spawn.x, a.z - WORLD.spawn.z) - Math.hypot(b.x - WORLD.spawn.x, b.z - WORLD.spawn.z)).slice(0, Math.ceil(WORLD.trees.length * vegetationDensity)), [vegetationDensity])
   const flowers = useMemo(() => WORLD.flowers.filter((_, i) => i % 10 === 0).slice(0, Math.ceil(15 * vegetationDensity)).map(p => ({ ...p, scale: 0.7 })), [vegetationDensity])
   const lamps = useMemo(() => [-23, -10, 10, 23].flatMap(x => [{ x, z: 25 }, { x, z: -22, rotation: Math.PI }]), [])
@@ -63,9 +73,21 @@ export function Terrain({ vegetationDensity, lowDetail, wind }: { vegetationDens
       <mesh position-y={0.8} castShadow><cylinderGeometry args={[0.35, 0.7, 1.2, 16]} /><meshStandardMaterial color="#ecdebe" /></mesh>
       <mesh position-y={1.5} castShadow><sphereGeometry args={[0.58, 20, 12]} /><meshStandardMaterial color="#9fc9a5" roughness={0.3} /></mesh>
     </group>
-    {WORLD.landmarks.filter(place => ['cafe', 'home', 'tower'].includes(place.kind)).map(place => <Asset key={place.id}
-      name={place.kind === 'cafe' ? lowDetail ? 'cafeLow' : 'cafe' : place.kind === 'home' ? lowDetail ? 'apartmentLow' : 'apartment' : lowDetail ? 'towerLow' : 'tower'}
-      position={[place.x, 0, place.z]} lite={lowDetail} />)}
+    {WORLD.landmarks.filter(place => ['cafe', 'home', 'tower'].includes(place.kind)).map(place => {
+      if (place.kind === 'cafe') {
+        return (
+          <group key={place.id} position={[-15, 0, -6.5]} rotation-y={Math.PI}>
+            <Asset name={lowDetail ? 'bistroExteriorLod1' : 'bistroExteriorLod0'} lite={lowDetail} />
+            <group ref={bistroInteriorRef}>
+              <Asset name="bistroInterior" lite={lowDetail} />
+            </group>
+          </group>
+        )
+      }
+      return <Asset key={place.id}
+        name={place.kind === 'home' ? lowDetail ? 'apartmentLow' : 'apartment' : lowDetail ? 'towerLow' : 'tower'}
+        position={[place.x, 0, place.z]} lite={lowDetail} />
+    })}
     <InstancedAsset name={lowDetail ? 'treeLow' : 'tree'} placements={trees} wind={wind} lite={lowDetail} />
     <InstancedAsset name={lowDetail ? 'flowersLow' : 'flowers'} placements={flowers} lite={lowDetail} />
     <InstancedAsset name="lamp" placements={lamps} lite={lowDetail} />

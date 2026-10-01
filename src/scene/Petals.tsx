@@ -23,12 +23,19 @@ export function Petals({ count, simulation, wind }: { count: number; simulation:
     geometry.setAttribute('aOffset', new THREE.InstancedBufferAttribute(offsets, 3))
     geometry.setAttribute('aPhase', new THREE.InstancedBufferAttribute(phases, 1))
     const material = new THREE.ShaderMaterial({
-      uniforms: { uTime: { value: 0 }, uWind: { value: 0.6 }, uPlayer: { value: new THREE.Vector3() }, uVehicle: { value: new THREE.Vector3() } },
-      vertexShader: `attribute vec3 aOffset; attribute float aPhase; uniform float uTime; uniform float uWind; uniform vec3 uPlayer; uniform vec3 uVehicle; varying vec2 vUv;
+      uniforms: {
+        uTime: { value: 0 },
+        uWind: { value: 0.6 },
+        uPlayer: { value: new THREE.Vector3() },
+        uCompanion: { value: new THREE.Vector3() },
+        uVehicle: { value: new THREE.Vector3() },
+      },
+      vertexShader: `attribute vec3 aOffset; attribute float aPhase; uniform float uTime; uniform float uWind; uniform vec3 uPlayer; uniform vec3 uCompanion; uniform vec3 uVehicle; varying vec2 vUv;
         void main(){ vUv=uv; vec3 p=aOffset; p.y=mod(p.y-uTime*(.26+aPhase*.025),13.);
         p.x+=sin(uTime*.4+aPhase+p.z*.1)*(1.+uWind*2.); p.z+=cos(uTime*.22+aPhase)*.8;
         vec2 d=p.xz-uPlayer.xz; float radius=length(d); p.xz+=normalize(d+vec2(.001))*(1.-smoothstep(0.,2.8,radius))*1.4;
         p.y+=(1.-smoothstep(0.,2.8,radius))*max(0.,1.-p.y*.25)*.7;
+        vec2 dc=p.xz-uCompanion.xz; p.xz+=normalize(dc+vec2(.001))*(1.-smoothstep(0.,1.8,length(dc)))*0.9;
         vec2 dv=p.xz-uVehicle.xz; p.xz+=normalize(dv+vec2(.001))*(1.-smoothstep(0.,4.,length(dv)))*1.8;
         vec3 leaf=position; float r=uTime+aPhase; leaf.x=position.x*cos(r)-position.y*sin(r); leaf.y=position.x*sin(r)+position.y*cos(r);
         vec4 mv=viewMatrix*vec4(p,1.); mv.xyz+=leaf; gl_Position=projectionMatrix*mv; }`,
@@ -44,6 +51,7 @@ export function Petals({ count, simulation, wind }: { count: number; simulation:
     material.uniforms.uTime.value = simulation.elapsed
     material.uniforms.uWind.value = wind.value
     material.uniforms.uPlayer.value.set(simulation.player.x, 0, simulation.player.z)
+    material.uniforms.uCompanion.value.set(simulation.companion.x, 0, simulation.companion.z)
     material.uniforms.uVehicle.value.set(simulation.shuttle.x, 0, simulation.shuttle.z)
   })
   return <mesh geometry={geometry} material={material} frustumCulled={false} />

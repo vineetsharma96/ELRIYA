@@ -1,7 +1,17 @@
 import { useRef, useState, type PointerEvent, type RefObject } from 'react'
 import type { WorldApi } from '../scene/types'
 
-export default function TouchControls({ apiRef, disabled }: { apiRef: RefObject<WorldApi | null>; disabled: boolean }) {
+export default function TouchControls({
+  apiRef,
+  disabled,
+  canCancel,
+  onCancel,
+}: {
+  apiRef: RefObject<WorldApi | null>;
+  disabled: boolean;
+  canCancel?: boolean;
+  onCancel?: () => void;
+}) {
   const [thumb, setThumb] = useState({ x: 0, y: 0 })
   const pointer = useRef<number | null>(null)
   function move(event: PointerEvent<HTMLDivElement>) {
@@ -24,6 +34,19 @@ export default function TouchControls({ apiRef, disabled }: { apiRef: RefObject<
       <span className="touch-stick-cross">+</span><span className="touch-thumb" style={{ transform: `translate(${thumb.x}px, ${thumb.y}px)` }} />
     </div>
     <div className="touch-actions">
+      {canCancel && (
+        <button
+          className="touch-action touch-cancel"
+          aria-label="Cancel carrying cup"
+          onPointerDown={event => {
+            event.currentTarget.setPointerCapture(event.pointerId)
+            if (onCancel) onCancel()
+            else apiRef.current?.cancelBistro()
+          }}
+        >
+          Cancel
+        </button>
+      )}
       <button className="touch-action" onPointerDown={event => { event.currentTarget.setPointerCapture(event.pointerId); apiRef.current?.setVirtual({ sprint: true }) }} onPointerUp={() => apiRef.current?.setVirtual({ sprint: false })} onPointerCancel={() => apiRef.current?.setVirtual({ sprint: false })} onLostPointerCapture={() => apiRef.current?.setVirtual({ sprint: false })}>Sprint</button>
       <button className="touch-action touch-jump" onPointerDown={event => { event.currentTarget.setPointerCapture(event.pointerId); apiRef.current?.setVirtual({ jump: true }) }} onPointerUp={() => apiRef.current?.setVirtual({ jump: false })} onPointerCancel={() => apiRef.current?.setVirtual({ jump: false })} onLostPointerCapture={() => apiRef.current?.setVirtual({ jump: false })}>Jump</button>
     </div>
