@@ -1,0 +1,7 @@
+{
+  "name": "apartment-lod1",
+  "path": "/assets/architecture/apartment-lod1.glb",
+  "triangles": 6006,
+  "source": "Blender MCP",
+  "parent": "apartment"
+}

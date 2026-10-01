@@ -1,0 +1,14 @@
+{
+  "error": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('Clear skies', { exact: true }) to be visible\u001b[22m\n",
+  "errors": [],
+  "checks": [
+    "WASD movement and real landmark discovery/interaction",
+    "Jump edge and landing",
+    "World-derived map and paused movement",
+    "Quality remains active during HUD updates; follow/vista switching",
+    "High quality loads full assets and shadows"
+  ],
+  "html": "ELYRIA\na little world of wonder\nBlossom Central\n09:55\nSunny\nWELCOME TO YOUR LITTLE TOMORROW\nA little wonder,\naround every corner.\n\nTake the long way home.\n\nFollow\n1 places found\nN\nBlossom Central\nM\nW A S D\nExplore\nShift\nSprint\nSpace\nJump\nE\nInteract\nC\nVista\nM\nMap\nDrag to look around\nRuntime diagnostics\nFPS / frame\n1 / 816.1 ms\np95 frame\n2268.0 ms\nDraws / triangles\n154 / 624,108\nBackend\nWebGL2\nLighting\nHemisphere ambient + sun\nRay tracing\nUnavailable\nQuality / DPR\nHIGH / 1.00\nNPCs / petals\n10 / 900\nPlayer XYZ\n0.0, 0.0, 12.0\nTime\n09:55\nWind\n0.6\nReturn to plaza entrance\nF3 to hide · measured runtime counters",
+  "status": "Resolved by the subsequent passing browser suite; retained as prior test-harness failure evidence",
+  "resolvedAt": "2026-10-01T11:56:27.667Z"
+}

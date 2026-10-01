@@ -1,0 +1,23 @@
+{
+  "name": "tower",
+  "path": "/assets/architecture/tower.glb",
+  "triangles": 4848,
+  "vertices": 2476,
+  "materials": 5,
+  "bounds_blender": {
+    "min": [
+      -3.5999999046325684,
+      -3.299999952316284,
+      0
+    ],
+    "max": [
+      3.5999999046325684,
+      3.299999952316284,
+      23.329999923706055
+    ]
+  },
+  "animations": [],
+  "origin": "ground-centre",
+  "units": "metres",
+  "source": "Blender MCP"
+}

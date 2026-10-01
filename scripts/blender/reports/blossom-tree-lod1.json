@@ -1,0 +1,7 @@
+{
+  "name": "blossom-tree-lod1",
+  "path": "/assets/vegetation/blossom-tree-lod1.glb",
+  "triangles": 978,
+  "source": "Blender MCP",
+  "parent": "blossom-tree"
+}

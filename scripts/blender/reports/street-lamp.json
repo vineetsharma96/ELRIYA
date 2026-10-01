@@ -1,0 +1,23 @@
+{
+  "name": "street-lamp",
+  "path": "/assets/street/street-lamp.glb",
+  "triangles": 1372,
+  "vertices": 700,
+  "materials": 4,
+  "bounds_blender": {
+    "min": [
+      -0.23999999463558197,
+      -0.3100000023841858,
+      0
+    ],
+    "max": [
+      1.0099999904632568,
+      0.3099999725818634,
+      3.5276951789855957
+    ]
+  },
+  "animations": [],
+  "origin": "ground-centre",
+  "units": "metres",
+  "source": "Blender MCP"
+}

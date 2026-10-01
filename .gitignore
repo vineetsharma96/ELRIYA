@@ -1,0 +1,12 @@
+node_modules/
+dist/
+test-results/
+playwright-report/
+.vite/
+*.log
+.env
+.env.*
+!.env.example
+public/assets/**/*.blend1
+artifacts/*.tmp
+chrome/

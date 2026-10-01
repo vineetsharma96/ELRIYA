@@ -1,0 +1,23 @@
+{
+  "name": "companion",
+  "path": "/assets/characters/companion.glb",
+  "triangles": 3648,
+  "vertices": 1866,
+  "materials": 6,
+  "bounds_blender": {
+    "min": [
+      -0.3000001609325409,
+      -0.4790000021457672,
+      0.019999995827674866
+    ],
+    "max": [
+      0.30400002002716064,
+      0.9070000052452087,
+      0.9699999690055847
+    ]
+  },
+  "animations": [],
+  "origin": "ground-centre",
+  "units": "metres",
+  "source": "Blender MCP"
+}

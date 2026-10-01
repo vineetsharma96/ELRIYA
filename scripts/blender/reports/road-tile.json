@@ -1,0 +1,23 @@
+{
+  "name": "road-tile",
+  "path": "/assets/street/road-tile.glb",
+  "triangles": 336,
+  "vertices": 176,
+  "materials": 2,
+  "bounds_blender": {
+    "min": [
+      -2,
+      -2,
+      0
+    ],
+    "max": [
+      2,
+      2,
+      0.30000001192092896
+    ]
+  },
+  "animations": [],
+  "origin": "ground-centre",
+  "units": "metres",
+  "source": "Blender MCP"
+}

@@ -1,0 +1,475 @@
+{
+  "checkedAt": "2026-10-01T11:34:34.334Z",
+  "totalBytes": 4017108,
+  "assets": [
+    {
+      "name": "apartment-lod1",
+      "path": "/assets/architecture/apartment-lod1.glb",
+      "bytes": 496800,
+      "triangles": 6006,
+      "vertices": 14208,
+      "drawCalls": 6,
+      "materials": 6,
+      "boundsMesh": [
+        [
+          -3.9,
+          3.9
+        ],
+        [
+          0,
+          12.65
+        ],
+        [
+          -3.35,
+          3.9646
+        ]
+      ],
+      "animations": [],
+      "source": "Khronos glTF Blender I/O v5.2.40",
+      "extensions": []
+    },
+    {
+      "name": "apartment",
+      "path": "/assets/architecture/apartment.glb",
+      "bytes": 863920,
+      "triangles": 17164,
+      "vertices": 23589,
+      "drawCalls": 6,
+      "materials": 6,
+      "boundsMesh": [
+        [
+          -3.9,
+          3.9
+        ],
+        [
+          0,
+          12.65
+        ],
+        [
+          -3.35,
+          3.96
+        ]
+      ],
+      "animations": [],
+      "source": "Khronos glTF Blender I/O v5.2.40",
+      "extensions": []
+    },
+    {
+      "name": "cafe-lod1",
+      "path": "/assets/architecture/cafe-lod1.glb",
+      "bytes": 297448,
+      "triangles": 4439,
+      "vertices": 8156,
+      "drawCalls": 10,
+      "materials": 10,
+      "boundsMesh": [
+        [
+          -4.7922,
+          4.7921
+        ],
+        [
+          0.0084,
+          7.02
+        ],
+        [
+          -3.6505,
+          4.2354
+        ]
+      ],
+      "animations": [],
+      "source": "Khronos glTF Blender I/O v5.2.40",
+      "extensions": []
+    },
+    {
+      "name": "cafe",
+      "path": "/assets/architecture/cafe.glb",
+      "bytes": 575372,
+      "triangles": 12688,
+      "vertices": 15297,
+      "drawCalls": 10,
+      "materials": 10,
+      "boundsMesh": [
+        [
+          -4.789,
+          4.789
+        ],
+        [
+          0,
+          7.02
+        ],
+        [
+          -3.65,
+          4.235
+        ]
+      ],
+      "animations": [],
+      "source": "Khronos glTF Blender I/O v5.2.40",
+      "extensions": []
+    },
+    {
+      "name": "tower-lod1",
+      "path": "/assets/architecture/tower-lod1.glb",
+      "bytes": 127100,
+      "triangles": 1696,
+      "vertices": 3491,
+      "drawCalls": 5,
+      "materials": 5,
+      "boundsMesh": [
+        [
+          -3.5882,
+          3.5882
+        ],
+        [
+          0.029,
+          23.3314
+        ],
+        [
+          -3.2886,
+          3.2886
+        ]
+      ],
+      "animations": [],
+      "source": "Khronos glTF Blender I/O v5.2.40",
+      "extensions": []
+    },
+    {
+      "name": "tower",
+      "path": "/assets/architecture/tower.glb",
+      "bytes": 287952,
+      "triangles": 4848,
+      "vertices": 7928,
+      "drawCalls": 5,
+      "materials": 5,
+      "boundsMesh": [
+        [
+          -3.6,
+          3.6
+        ],
+        [
+          0,
+          23.33
+        ],
+        [
+          -3.3,
+          3.3
+        ]
+      ],
+      "animations": [],
+      "source": "Khronos glTF Blender I/O v5.2.40",
+      "extensions": []
+    },
+    {
+      "name": "citizen",
+      "path": "/assets/characters/citizen.glb",
+      "bytes": 194396,
+      "triangles": 6076,
+      "vertices": 4692,
+      "drawCalls": 8,
+      "materials": 8,
+      "boundsMesh": [
+        [
+          -0.455,
+          0.46
+        ],
+        [
+          0,
+          1.7875
+        ],
+        [
+          -0.365,
+          0.374
+        ]
+      ],
+      "animations": [],
+      "source": "Khronos glTF Blender I/O v5.2.40",
+      "extensions": []
+    },
+    {
+      "name": "companion",
+      "path": "/assets/characters/companion.glb",
+      "bytes": 111020,
+      "triangles": 3648,
+      "vertices": 2595,
+      "drawCalls": 6,
+      "materials": 6,
+      "boundsMesh": [
+        [
+          -0.3,
+          0.304
+        ],
+        [
+          0.02,
+          0.97
+        ],
+        [
+          -0.907,
+          0.479
+        ]
+      ],
+      "animations": [],
+      "source": "Khronos glTF Blender I/O v5.2.40",
+      "extensions": []
+    },
+    {
+      "name": "protagonist",
+      "path": "/assets/characters/protagonist.glb",
+      "bytes": 223976,
+      "triangles": 6732,
+      "vertices": 5464,
+      "drawCalls": 9,
+      "materials": 9,
+      "boundsMesh": [
+        [
+          -0.455,
+          0.46
+        ],
+        [
+          0,
+          1.7875
+        ],
+        [
+          -0.409,
+          0.374
+        ]
+      ],
+      "animations": [],
+      "source": "Khronos glTF Blender I/O v5.2.40",
+      "extensions": []
+    },
+    {
+      "name": "bench",
+      "path": "/assets/street/bench.glb",
+      "bytes": 113156,
+      "triangles": 2184,
+      "vertices": 3056,
+      "drawCalls": 2,
+      "materials": 2,
+      "boundsMesh": [
+        [
+          -0.96,
+          0.96
+        ],
+        [
+          0,
+          0.985
+        ],
+        [
+          -0.3666,
+          0.275
+        ]
+      ],
+      "animations": [],
+      "source": "Khronos glTF Blender I/O v5.2.40",
+      "extensions": []
+    },
+    {
+      "name": "road-tile",
+      "path": "/assets/street/road-tile.glb",
+      "bytes": 25656,
+      "triangles": 336,
+      "vertices": 672,
+      "drawCalls": 2,
+      "materials": 2,
+      "boundsMesh": [
+        [
+          -2,
+          2
+        ],
+        [
+          0,
+          0.3
+        ],
+        [
+          -2,
+          2
+        ]
+      ],
+      "animations": [],
+      "source": "Khronos glTF Blender I/O v5.2.40",
+      "extensions": []
+    },
+    {
+      "name": "street-lamp",
+      "path": "/assets/street/street-lamp.glb",
+      "bytes": 51472,
+      "triangles": 1372,
+      "vertices": 1220,
+      "drawCalls": 4,
+      "materials": 4,
+      "boundsMesh": [
+        [
+          -0.24,
+          1.01
+        ],
+        [
+          0,
+          3.5277
+        ],
+        [
+          -0.31,
+          0.31
+        ]
+      ],
+      "animations": [],
+      "source": "Khronos glTF Blender I/O v5.2.40",
+      "extensions": []
+    },
+    {
+      "name": "blossom-tree-lod1",
+      "path": "/assets/vegetation/blossom-tree-lod1.glb",
+      "bytes": 38508,
+      "triangles": 978,
+      "vertices": 890,
+      "drawCalls": 4,
+      "materials": 4,
+      "boundsMesh": [
+        [
+          -2.1973,
+          2.5119
+        ],
+        [
+          0.0101,
+          5.2939
+        ],
+        [
+          -2.4399,
+          2.5041
+        ]
+      ],
+      "animations": [],
+      "source": "Khronos glTF Blender I/O v5.2.40",
+      "extensions": []
+    },
+    {
+      "name": "blossom-tree",
+      "path": "/assets/vegetation/blossom-tree.glb",
+      "bytes": 92868,
+      "triangles": 2796,
+      "vertices": 2249,
+      "drawCalls": 4,
+      "materials": 4,
+      "boundsMesh": [
+        [
+          -2.1973,
+          2.5119
+        ],
+        [
+          0,
+          5.3
+        ],
+        [
+          -2.4399,
+          2.5041
+        ]
+      ],
+      "animations": [],
+      "source": "Khronos glTF Blender I/O v5.2.40",
+      "extensions": []
+    },
+    {
+      "name": "flower-patch-lod1",
+      "path": "/assets/vegetation/flower-patch-lod1.glb",
+      "bytes": 77196,
+      "triangles": 1986,
+      "vertices": 1907,
+      "drawCalls": 4,
+      "materials": 4,
+      "boundsMesh": [
+        [
+          -0.7125,
+          0.7352
+        ],
+        [
+          0.0203,
+          0.4814
+        ],
+        [
+          -0.6014,
+          0.7597
+        ]
+      ],
+      "animations": [],
+      "source": "Khronos glTF Blender I/O v5.2.40",
+      "extensions": []
+    },
+    {
+      "name": "flower-patch",
+      "path": "/assets/vegetation/flower-patch.glb",
+      "bytes": 195304,
+      "triangles": 5676,
+      "vertices": 4906,
+      "drawCalls": 4,
+      "materials": 4,
+      "boundsMesh": [
+        [
+          -0.7125,
+          0.7385
+        ],
+        [
+          0.02,
+          0.482
+        ],
+        [
+          -0.6038,
+          0.762
+        ]
+      ],
+      "animations": [],
+      "source": "Khronos glTF Blender I/O v5.2.40",
+      "extensions": []
+    },
+    {
+      "name": "petal",
+      "path": "/assets/vegetation/petal.glb",
+      "bytes": 3416,
+      "triangles": 60,
+      "vertices": 53,
+      "drawCalls": 1,
+      "materials": 1,
+      "boundsMesh": [
+        [
+          -0.0603,
+          0.0603
+        ],
+        [
+          -0.0004,
+          0.0284
+        ],
+        [
+          -0.1,
+          0.1
+        ]
+      ],
+      "animations": [],
+      "source": "Khronos glTF Blender I/O v5.2.40",
+      "extensions": []
+    },
+    {
+      "name": "shuttle",
+      "path": "/assets/vehicles/shuttle.glb",
+      "bytes": 241548,
+      "triangles": 5604,
+      "vertices": 6307,
+      "drawCalls": 6,
+      "materials": 6,
+      "boundsMesh": [
+        [
+          -1.092,
+          1.092
+        ],
+        [
+          0.07,
+          2.171
+        ],
+        [
+          -1.731,
+          1.756
+        ]
+      ],
+      "animations": [],
+      "source": "Khronos glTF Blender I/O v5.2.40",
+      "extensions": []
+    }
+  ],
+  "errors": []
+}

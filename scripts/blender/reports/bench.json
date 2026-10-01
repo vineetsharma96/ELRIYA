@@ -1,0 +1,23 @@
+{
+  "name": "bench",
+  "path": "/assets/street/bench.glb",
+  "triangles": 2184,
+  "vertices": 1120,
+  "materials": 2,
+  "bounds_blender": {
+    "min": [
+      -0.9599999785423279,
+      -0.2750000059604645,
+      0
+    ],
+    "max": [
+      0.9599999785423279,
+      0.36658957600593567,
+      0.9850000143051147
+    ]
+  },
+  "animations": [],
+  "origin": "ground-centre",
+  "units": "metres",
+  "source": "Blender MCP"
+}

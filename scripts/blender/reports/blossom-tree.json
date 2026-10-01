@@ -1,0 +1,23 @@
+{
+  "name": "blossom-tree",
+  "path": "/assets/vegetation/blossom-tree.glb",
+  "triangles": 2796,
+  "vertices": 1442,
+  "materials": 4,
+  "bounds_blender": {
+    "min": [
+      -2.1972713470458984,
+      -2.5041425228118896,
+      0
+    ],
+    "max": [
+      2.5118703842163086,
+      2.439854860305786,
+      5.300000190734863
+    ]
+  },
+  "animations": [],
+  "origin": "ground-centre",
+  "units": "metres",
+  "source": "Blender MCP"
+}

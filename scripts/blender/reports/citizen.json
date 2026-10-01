@@ -1,0 +1,23 @@
+{
+  "name": "citizen",
+  "path": "/assets/characters/citizen.glb",
+  "triangles": 6076,
+  "vertices": 3100,
+  "materials": 8,
+  "bounds_blender": {
+    "min": [
+      -0.45500001311302185,
+      -0.3739999830722809,
+      0
+    ],
+    "max": [
+      0.46000006794929504,
+      0.36500000953674316,
+      1.787500023841858
+    ]
+  },
+  "animations": [],
+  "origin": "ground-centre",
+  "units": "metres",
+  "source": "Blender MCP"
+}

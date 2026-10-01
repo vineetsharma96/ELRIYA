@@ -1,0 +1,23 @@
+{
+  "name": "protagonist",
+  "path": "/assets/characters/protagonist.glb",
+  "triangles": 6732,
+  "vertices": 3436,
+  "materials": 9,
+  "bounds_blender": {
+    "min": [
+      -0.45500001311302185,
+      -0.3739999830722809,
+      0
+    ],
+    "max": [
+      0.46000006794929504,
+      0.4090000092983246,
+      1.787500023841858
+    ]
+  },
+  "animations": [],
+  "origin": "ground-centre",
+  "units": "metres",
+  "source": "Blender MCP"
+}

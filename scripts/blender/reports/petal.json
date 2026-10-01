@@ -1,0 +1,23 @@
+{
+  "name": "petal",
+  "path": "/assets/vegetation/petal.glb",
+  "triangles": 60,
+  "vertices": 32,
+  "materials": 1,
+  "bounds_blender": {
+    "min": [
+      -0.060272105038166046,
+      -0.10000001639127731,
+      -0.00040818285197019577
+    ],
+    "max": [
+      0.06027209758758545,
+      0.10000000149011612,
+      0.02840818464756012
+    ]
+  },
+  "animations": [],
+  "origin": "ground-centre",
+  "units": "metres",
+  "source": "Blender MCP"
+}

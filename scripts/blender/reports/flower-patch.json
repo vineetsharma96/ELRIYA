@@ -1,0 +1,23 @@
+{
+  "name": "flower-patch",
+  "path": "/assets/vegetation/flower-patch.glb",
+  "triangles": 5676,
+  "vertices": 3014,
+  "materials": 4,
+  "bounds_blender": {
+    "min": [
+      -0.7124693393707275,
+      -0.762048602104187,
+      0.019999995827674866
+    ],
+    "max": [
+      0.7384744882583618,
+      0.603752613067627,
+      0.4819999933242798
+    ]
+  },
+  "animations": [],
+  "origin": "ground-centre",
+  "units": "metres",
+  "source": "Blender MCP"
+}

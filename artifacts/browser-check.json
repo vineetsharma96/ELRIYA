@@ -1,0 +1,57 @@
+{
+  "testedAt": "2026-10-01T11:56:27.667Z",
+  "browser": "Chromium headless",
+  "baseUrl": "http://127.0.0.1:4173",
+  "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+  "errors": [],
+  "checks": [
+    "WASD movement and real landmark discovery/interaction",
+    "Jump edge and landing",
+    "World-derived map and paused movement",
+    "Quality remains active during HUD updates; follow/vista switching",
+    "High quality loads full assets and shadows",
+    "World clock changes sky, lighting, and night windows",
+    "390×844 mobile layout, actual touch joystick, and map controls",
+    "Missing asset shows a recoverable error without a stuck loader"
+  ],
+  "start": [
+    0,
+    0,
+    12
+  ],
+  "moved": [
+    -3.7,
+    0,
+    4.4
+  ],
+  "jumping": [
+    -3.7,
+    0.7,
+    4.4
+  ],
+  "landed": [
+    -3.7,
+    0,
+    4.4
+  ],
+  "pausedAt": [
+    -3.7,
+    0,
+    4.4
+  ],
+  "pausedEnd": [
+    -3.7,
+    0,
+    4.4
+  ],
+  "telemetry": "Runtime diagnostics\nFPS / frame\n2 / 410.9 ms\np95 frame\n458.3 ms\nDraws / triangles\n28 / 110,533\nBackend\nWebGL2\nLighting\nHemisphere ambient + sun\nRay tracing\nUnavailable\nQuality / DPR\nLITE / 0.75\nNPCs / petals\n2 / 100\nPlayer XYZ\n0.0, 0.0, 12.0\nTime\n09:42\nWind\n0.6\nReturn to plaza entrance\nF3 to hide · measured runtime counters",
+  "highTelemetry": "Runtime diagnostics\nFPS / frame\n2 / 503.4 ms\np95 frame\n494.4 ms\nDraws / triangles\n154 / 624,108\nBackend\nWebGL2\nLighting\nHemisphere ambient + sun\nRay tracing\nUnavailable\nQuality / DPR\nHIGH / 1.00\nNPCs / petals\n10 / 900\nPlayer XYZ\n0.0, 0.0, 12.0\nTime\n09:54\nWind\n0.6\nReturn to plaza entrance\nF3 to hide · measured runtime counters",
+  "mobileStart": [
+    0,
+    12
+  ],
+  "mobileMoved": [
+    -1.100723091386838,
+    9.721329989611316
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "name": "cafe",
+  "path": "/assets/architecture/cafe.glb",
+  "triangles": 12688,
+  "vertices": 7032,
+  "materials": 10,
+  "bounds_blender": {
+    "min": [
+      -4.789043426513672,
+      -4.234999656677246,
+      0
+    ],
+    "max": [
+      4.789043426513672,
+      3.6500000953674316,
+      7.019999980926514
+    ]
+  },
+  "animations": [],
+  "origin": "ground-centre",
+  "units": "metres",
+  "source": "Blender MCP"
+}

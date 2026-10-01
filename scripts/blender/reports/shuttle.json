@@ -1,0 +1,23 @@
+{
+  "name": "shuttle",
+  "path": "/assets/vehicles/shuttle.glb",
+  "triangles": 5604,
+  "vertices": 3050,
+  "materials": 6,
+  "bounds_blender": {
+    "min": [
+      -1.0920000076293945,
+      -1.7559999227523804,
+      0.06999999284744263
+    ],
+    "max": [
+      1.0920000076293945,
+      1.7309999465942383,
+      2.1710000038146973
+    ]
+  },
+  "animations": [],
+  "origin": "ground-centre",
+  "units": "metres",
+  "source": "Blender MCP"
+}

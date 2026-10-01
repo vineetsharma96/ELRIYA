@@ -1,0 +1,7 @@
+{
+  "name": "flower-patch-lod1",
+  "path": "/assets/vegetation/flower-patch-lod1.glb",
+  "triangles": 1986,
+  "source": "Blender MCP",
+  "parent": "flower-patch"
+}

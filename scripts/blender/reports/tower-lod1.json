@@ -1,0 +1,7 @@
+{
+  "name": "tower-lod1",
+  "path": "/assets/architecture/tower-lod1.glb",
+  "triangles": 1696,
+  "source": "Blender MCP",
+  "parent": "tower"
+}
