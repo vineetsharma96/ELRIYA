@@ -1,0 +1,117 @@
+{
+  "checkedAt": "2026-10-01T13:07:26.018Z",
+  "contractSchema": 1,
+  "assets": [
+    {
+      "url": "/assets/architecture/blossom_bistro_exterior_lod0.glb",
+      "triangles": 2162,
+      "triangleCeiling": 8000,
+      "bytes": 205536,
+      "sha256": "75e3acf6c377fd9833579d39dcd1431597625c097329e25d5dff63174d5de351",
+      "bounds": {
+        "min": [
+          -4.599999904632568,
+          -0.1399998664855957,
+          -0.6000000238418579
+        ],
+        "max": [
+          4.600000381469727,
+          7.090000152587891,
+          7.599999904632568
+        ]
+      },
+      "materials": 1,
+      "embeddedImages": 3,
+      "doorwayClear": true
+    },
+    {
+      "url": "/assets/architecture/blossom_bistro_exterior_lod1.glb",
+      "triangles": 638,
+      "triangleCeiling": 3500,
+      "bytes": 128228,
+      "sha256": "d73cecdee28181e75143aa263269eaee2a1af8f76cc085a094b8e52ae18a1a08",
+      "bounds": {
+        "min": [
+          -4.599999904632568,
+          -0.1399998664855957,
+          -0.6000000238418579
+        ],
+        "max": [
+          4.600000381469727,
+          6.800000190734863,
+          7.599999904632568
+        ]
+      },
+      "materials": 1,
+      "embeddedImages": 3,
+      "doorwayClear": true
+    },
+    {
+      "url": "/assets/architecture/blossom_bistro_exterior_lod2.glb",
+      "triangles": 230,
+      "triangleCeiling": 1200,
+      "bytes": 103820,
+      "sha256": "c6364104e522ae2125ea8ddcadf86b967506d41d73852d29a29528f7a925ff29",
+      "bounds": {
+        "min": [
+          -4.599999904632568,
+          -0.1399998664855957,
+          -0.6000000238418579
+        ],
+        "max": [
+          4.600000381469727,
+          6.800000190734863,
+          7.599999904632568
+        ]
+      },
+      "materials": 1,
+      "embeddedImages": 3,
+      "doorwayClear": true
+    },
+    {
+      "url": "/assets/interiors/blossom_bistro_interior.glb",
+      "triangles": 2060,
+      "triangleCeiling": 10000,
+      "bytes": 215828,
+      "sha256": "f788c7231affbbc9fd98cb5032bb80699b2a1ff6f2f7bcdee7889ba0c0cc59fe",
+      "bounds": {
+        "min": [
+          -3.799999952316284,
+          -0.10000000149011612,
+          0.20000004768371582
+        ],
+        "max": [
+          3.799999952316284,
+          4.550000190734863,
+          6.800000190734863
+        ]
+      },
+      "materials": 1,
+      "embeddedImages": 3,
+      "doorwayClear": null
+    },
+    {
+      "url": "/assets/props/blossom_tea_cup.glb",
+      "triangles": 456,
+      "triangleCeiling": 800,
+      "bytes": 113404,
+      "sha256": "24b2b6e48123c854f1c1fbc0907e56d3186739d0bdcd94901b7edae0868ea240",
+      "bounds": {
+        "min": [
+          -0.07000000029802322,
+          0,
+          -0.0689365416765213
+        ],
+        "max": [
+          0.11499999463558197,
+          0.16250000894069672,
+          0.0689365416765213
+        ]
+      },
+      "materials": 1,
+      "embeddedImages": 3,
+      "doorwayClear": null
+    }
+  ],
+  "errors": []
+}

@@ -61,3 +61,26 @@ The material primitive column describes exported geometry, not final scene draw 
 Sources are independent Blender libraries in assets/source; GLBs use categorized public/assets folders. No texture atlas, Draco/meshopt compression, completed skeleton or animation clips are claimed. The rendered falling petals use two-triangle GPU-instanced quads; the separate petal GLB is a source/reference asset.
 
 The original table above retains provisional targets. Several original material-slot and per-asset geometry targets are exceeded, notably the flower patch and apartment. Passing export guardrails does not sign off those targets or real-device frame performance. Density limits, LODs and batching reduce the scene's cost; lower-tier acceptance remains a profiling gate.
+
+
+<!-- BISTRO_VERIFIED_BEGIN -->
+## Blossom Bistro candidate — verified 2026-10-01T13:07:26.018Z
+
+Original Blender MCP geometry, one atlas material per export, saved editable sources and three deliberately modeled exterior LODs. These are candidate assets; integrated scene budgets and art acceptance remain separate gates.
+
+| Export | Actual GLB triangles / ceiling | KiB | Materials | SHA-256 |
+| --- | ---: | ---: | ---: | --- |
+| blossom_bistro_exterior_lod0.glb | 2162 / 8000 | 200.7 | 1 | `75e3acf6c377fd9833579d39dcd1431597625c097329e25d5dff63174d5de351` |
+| blossom_bistro_exterior_lod1.glb | 638 / 3500 | 125.2 | 1 | `d73cecdee28181e75143aa263269eaee2a1af8f76cc085a094b8e52ae18a1a08` |
+| blossom_bistro_exterior_lod2.glb | 230 / 1200 | 101.4 | 1 | `c6364104e522ae2125ea8ddcadf86b967506d41d73852d29a29528f7a925ff29` |
+| blossom_bistro_interior.glb | 2060 / 10000 | 210.8 | 1 | `f788c7231affbbc9fd98cb5032bb80699b2a1ff6f2f7bcdee7889ba0c0cc59fe` |
+| blossom_tea_cup.glb | 456 / 800 | 110.7 | 1 | `24b2b6e48123c854f1c1fbc0907e56d3186739d0bdcd94901b7edae0868ea240` |
+
+Five exports total 748.8 KiB. All exterior LODs pass actual mesh-ray doorway traversal samples at avatar heights. Validation also checks transformed bounds, embedded atlas textures, finite normals, UV ranges, cup base origin and collision opening. Run `node scripts/assets/inspect-bistro.mjs`; evidence: `artifacts/bistro/export-check.json`. General kit validation now checks 23 GLBs.
+
+Contract: `public/assets/architecture/blossom_bistro_contract.json`. Builder: `scripts/blender/build_blossom_bistro.py`. Sources: `assets/source/blossom_bistro_exterior_lod{0,1,2}.blend`, `blossom_bistro_interior.blend`, `blossom_tea_cup.blend`. Review images are source renders in `artifacts/bistro/`, not proof of browser rendering or gameplay.
+
+The shared 1024 color/roughness/emissive atlas has no normal map. Each GLB embeds its textures for independent loading. Embedded copies do not automatically share GPU textures across GLTFLoader calls; approximately 16 MiB including RGBA8 mipmaps per three-texture asset is a planning estimate, not measured memory. Avoid eagerly loading all LODs. Lite color batching must preserve or sample texture maps rather than bake only material.color.
+
+The primary roof ridge is 6.8m; the decorative cat reaches about 7.09m. Floors/porch remain flush at runtime Y=0. No cloth simulation, skeletal carry clip, advanced GI or integrated performance acceptance is claimed. Cup counts use actual exported triangles, which can differ from Blender's source tessellation after exporter cleanup.
+<!-- BISTRO_VERIFIED_END -->

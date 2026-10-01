@@ -1,0 +1,23 @@
+{
+  "name": "blossom_bistro_exterior_lod0",
+  "path": "/assets/architecture/blossom_bistro_exterior_lod0.glb",
+  "source": "Blender MCP",
+  "triangles": 2162,
+  "triangleCeiling": 8000,
+  "bytes": 205536,
+  "sha256": "75e3acf6c377fd9833579d39dcd1431597625c097329e25d5dff63174d5de351",
+  "materialSlots": 1,
+  "bounds": {
+    "min": [
+      -4.599999904632568,
+      -0.1399998664855957,
+      -0.6000000238418579
+    ],
+    "max": [
+      4.600000381469727,
+      7.090000152587891,
+      7.599999904632568
+    ]
+  },
+  "sourceFile": "assets/source/blossom_bistro_exterior_lod0.blend"
+}

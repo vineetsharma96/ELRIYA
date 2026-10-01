@@ -1,6 +1,6 @@
 {
-  "checkedAt": "2026-10-01T11:34:34.334Z",
-  "totalBytes": 4017108,
+  "checkedAt": "2026-10-01T13:10:56.356Z",
+  "totalBytes": 4783924,
   "assets": [
     {
       "name": "apartment-lod1",
@@ -48,6 +48,84 @@
         [
           -3.35,
           3.96
+        ]
+      ],
+      "animations": [],
+      "source": "Khronos glTF Blender I/O v5.2.40",
+      "extensions": []
+    },
+    {
+      "name": "blossom_bistro_exterior_lod0",
+      "path": "/assets/architecture/blossom_bistro_exterior_lod0.glb",
+      "bytes": 205536,
+      "triangles": 2162,
+      "vertices": 3242,
+      "drawCalls": 1,
+      "materials": 1,
+      "boundsMesh": [
+        [
+          -4.6,
+          4.6
+        ],
+        [
+          -0.14,
+          7.09
+        ],
+        [
+          -0.6,
+          7.6
+        ]
+      ],
+      "animations": [],
+      "source": "Khronos glTF Blender I/O v5.2.40",
+      "extensions": []
+    },
+    {
+      "name": "blossom_bistro_exterior_lod1",
+      "path": "/assets/architecture/blossom_bistro_exterior_lod1.glb",
+      "bytes": 128228,
+      "triangles": 638,
+      "vertices": 1112,
+      "drawCalls": 1,
+      "materials": 1,
+      "boundsMesh": [
+        [
+          -4.6,
+          4.6
+        ],
+        [
+          -0.14,
+          6.8
+        ],
+        [
+          -0.6,
+          7.6
+        ]
+      ],
+      "animations": [],
+      "source": "Khronos glTF Blender I/O v5.2.40",
+      "extensions": []
+    },
+    {
+      "name": "blossom_bistro_exterior_lod2",
+      "path": "/assets/architecture/blossom_bistro_exterior_lod2.glb",
+      "bytes": 103820,
+      "triangles": 230,
+      "vertices": 426,
+      "drawCalls": 1,
+      "materials": 1,
+      "boundsMesh": [
+        [
+          -4.6,
+          4.6
+        ],
+        [
+          -0.14,
+          6.8
+        ],
+        [
+          -0.6,
+          7.6
         ]
       ],
       "animations": [],
@@ -230,6 +308,58 @@
         [
           -0.409,
           0.374
+        ]
+      ],
+      "animations": [],
+      "source": "Khronos glTF Blender I/O v5.2.40",
+      "extensions": []
+    },
+    {
+      "name": "blossom_bistro_interior",
+      "path": "/assets/interiors/blossom_bistro_interior.glb",
+      "bytes": 215828,
+      "triangles": 2060,
+      "vertices": 3583,
+      "drawCalls": 1,
+      "materials": 1,
+      "boundsMesh": [
+        [
+          -3.8,
+          3.8
+        ],
+        [
+          -0.1,
+          4.55
+        ],
+        [
+          0.2,
+          6.8
+        ]
+      ],
+      "animations": [],
+      "source": "Khronos glTF Blender I/O v5.2.40",
+      "extensions": []
+    },
+    {
+      "name": "blossom_tea_cup",
+      "path": "/assets/props/blossom_tea_cup.glb",
+      "bytes": 113404,
+      "triangles": 456,
+      "vertices": 684,
+      "drawCalls": 1,
+      "materials": 1,
+      "boundsMesh": [
+        [
+          -0.07,
+          0.115
+        ],
+        [
+          0,
+          0.1625
+        ],
+        [
+          -0.0689,
+          0.0689
         ]
       ],
       "animations": [],

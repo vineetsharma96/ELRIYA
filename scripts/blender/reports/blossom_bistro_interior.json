@@ -1,0 +1,23 @@
+{
+  "name": "blossom_bistro_interior",
+  "path": "/assets/interiors/blossom_bistro_interior.glb",
+  "source": "Blender MCP",
+  "triangles": 2060,
+  "triangleCeiling": 10000,
+  "bytes": 215828,
+  "sha256": "f788c7231affbbc9fd98cb5032bb80699b2a1ff6f2f7bcdee7889ba0c0cc59fe",
+  "materialSlots": 1,
+  "bounds": {
+    "min": [
+      -3.799999952316284,
+      -0.10000000149011612,
+      0.20000004768371582
+    ],
+    "max": [
+      3.799999952316284,
+      4.550000190734863,
+      6.800000190734863
+    ]
+  },
+  "sourceFile": "assets/source/blossom_bistro_interior.blend"
+}

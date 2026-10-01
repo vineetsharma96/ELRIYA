@@ -1,0 +1,23 @@
+{
+  "name": "blossom_tea_cup",
+  "path": "/assets/props/blossom_tea_cup.glb",
+  "source": "Blender MCP",
+  "triangles": 456,
+  "triangleCeiling": 800,
+  "bytes": 113404,
+  "sha256": "24b2b6e48123c854f1c1fbc0907e56d3186739d0bdcd94901b7edae0868ea240",
+  "materialSlots": 1,
+  "bounds": {
+    "min": [
+      -0.07000000029802322,
+      0,
+      -0.0689365416765213
+    ],
+    "max": [
+      0.11499999463558197,
+      0.16250000894069672,
+      0.0689365416765213
+    ]
+  },
+  "sourceFile": "assets/source/blossom_tea_cup.blend"
+}

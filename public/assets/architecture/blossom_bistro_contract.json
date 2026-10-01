@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "assetId": "blossom-bistro",
+  "units": "metres",
+  "coordinateSystem": "glTF Y-up; doorway origin; front -Z; interior +Z",
+  "placement": { "position": [-15, 0, -6.5], "rotationY": 3.141592653589793, "replacesLandmarkId": "neko-cafe", "candidateOnly": true },
+  "wallBounds": { "min": [-4, 0, 0], "max": [4, 6.8, 7] },
+  "roofEnvelope": { "min": [-4.6, 4.6, -0.6], "max": [4.6, 6.8, 7.6] },
+  "floor": { "min": [-3.8, 0, 0.2], "max": [3.8, 0, 6.8], "height": 0 },
+  "doorway": { "center": [0, 1.2, 0.1], "width": 1.8, "height": 2.4, "opening": { "min": [-0.9, 0, 0], "max": [0.9, 2.4, 0.2] } },
+  "interiorTrigger": { "min": [-3.8, 0, 0.2], "max": [3.8, 3.2, 6.8] },
+  "approachTrigger": { "min": [-1.8, 0, -2.5], "max": [1.8, 3.2, 1.5] },
+  "anchors": {
+    "tableA": { "position": [-2.2, 0.55, 2], "interactionRadius": 1.5 },
+    "cupStart": { "position": [-2.2, 0.55, 2] },
+    "returnTray": { "position": [2, 0.9, 4.8], "interactionRadius": 1.2 },
+    "regularStand": { "position": [-2.2, 0, 3.1] },
+    "baristaStand": { "position": [0, 0, 6.5] },
+    "indoorCameraTarget": { "position": [0, 1.4, 2.5] }
+  },
+  "colliders": [
+    { "id": "front-left", "min": [-4, 0, 0], "max": [-0.9, 4.6, 0.2] },
+    { "id": "front-right", "min": [0.9, 0, 0], "max": [4, 4.6, 0.2] },
+    { "id": "door-header", "min": [-0.9, 2.4, 0], "max": [0.9, 4.6, 0.2], "cameraOnly": true },
+    { "id": "left-wall", "min": [-4, 0, 0.2], "max": [-3.8, 4.6, 7] },
+    { "id": "right-wall", "min": [3.8, 0, 0.2], "max": [4, 4.6, 7] },
+    { "id": "rear-wall", "min": [-3.8, 0, 6.8], "max": [3.8, 4.6, 7] },
+    { "id": "table-a", "min": [-2.8, 0, 1.6], "max": [-1.6, 0.55, 2.4] },
+    { "id": "table-b", "min": [1.6, 0, 1.6], "max": [2.8, 0.55, 2.4] },
+    { "id": "rear-counter", "min": [-3.4, 0, 5.5], "max": [3.4, 1.05, 6.1] },
+    { "id": "return-counter", "min": [1.5, 0, 4.5], "max": [3.4, 0.86, 5.5] },
+    { "id": "roof-clearance", "min": [-4, 4.55, 0.2], "max": [4, 6.8, 7], "cameraOnly": true, "conservative": true }
+  ],
+  "assets": {
+    "exterior": [
+      { "lod": 0, "url": "/assets/architecture/blossom_bistro_exterior_lod0.glb", "triangleCeiling": 8000 },
+      { "lod": 1, "url": "/assets/architecture/blossom_bistro_exterior_lod1.glb", "triangleCeiling": 3500 },
+      { "lod": 2, "url": "/assets/architecture/blossom_bistro_exterior_lod2.glb", "triangleCeiling": 1200 }
+    ],
+    "interior": { "url": "/assets/interiors/blossom_bistro_interior.glb", "triangleCeiling": 10000 },
+    "cup": { "url": "/assets/props/blossom_tea_cup.glb", "triangleCeiling": 800 }
+  },
+  "interaction": { "states": ["available", "carried", "returned"], "cancelIsExplicit": true, "zoneExitCancels": false, "persistCompletionOnly": true },
+  "notes": ["Camera collision entries tagged cameraOnly must not become ground-level movement obstacles.", "Floor and doorway remain flush; no steps or slopes are required.", "Visibility must retain interior contents when the player is inside, including looking away from the doorway.", "The interior GLB includes furniture and a tray but no duplicate cup; the cup is a separate asset with origin at its base."]
+}
