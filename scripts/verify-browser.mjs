@@ -22,17 +22,17 @@ try {
     return text.split(',').map(Number)
   }
   const start = await readCoordinates()
-  await page.keyboard.down('w')
-  const moveUntil = Date.now() + 20000
+  // Short real key holds keep the movement check inside its landmark radius
+  // even when software-renderer/CDP latency delays position observations.
+  const moveUntil = Date.now() + 120000
+  let moved = start
   while (Date.now() < moveUntil) {
-    const current = await readCoordinates()
-    if (Math.hypot(current[0] - start[0], current[2] - start[2]) > 6) break
-    await page.waitForTimeout(150)
+    await page.keyboard.press('w', { delay: 500 })
+    await page.waitForTimeout(500)
+    moved = await readCoordinates()
+    if (Math.hypot(moved[0] - start[0], moved[2] - start[2]) > 1 && Math.hypot(moved[0], moved[2]) < 6.3) break
   }
-  await page.keyboard.up('w')
-  await page.waitForTimeout(500)
-  const moved = await readCoordinates()
-  if (Math.hypot(moved[0] - start[0], moved[2] - start[2]) < 1) throw new Error('WASD movement failed')
+  if (Math.hypot(moved[0] - start[0], moved[2] - start[2]) < 1 || Math.hypot(moved[0], moved[2]) >= 6.3) throw new Error(`Movement did not reach the plaza interaction area: ${moved}`)
   await page.keyboard.press('e')
   await page.getByRole('status').filter({ hasText: 'Blossom Plaza' }).waitFor()
   checks.push('WASD movement and real landmark discovery/interaction')
@@ -63,7 +63,7 @@ try {
   await page.getByRole('button', { name: 'Back to wandering' }).click({ noWaitAfter: true })
   await page.getByRole('dialog').waitFor({ state: 'hidden' })
   await page.waitForTimeout(1000)
-  await page.getByRole('button', { name: 'Return to plaza entrance' }).click()
+  await page.getByRole('button', { name: 'Return to plaza entrance' }).click({ noWaitAfter: true })
   await page.keyboard.press('F3')
   await page.keyboard.press('c')
   await page.waitForTimeout(1600)
@@ -100,14 +100,14 @@ try {
     viewport: { width: 1440, height: 960 }, quality: 'LITE', dpr: 0.75, camera: 'vista', warmupSeconds: 10,
     sample: profile, telemetry: await page.locator('.debug-panel').innerText(), gpuTiming: 'Unavailable',
     limitation: 'Stationary headless software-renderer baseline; does not establish real-device desktop/mobile targets.' }, null, 2))
-  await page.getByRole('button', { name: 'Open pause menu' }).click()
+  await page.getByRole('button', { name: 'Open pause menu' }).click({ noWaitAfter: true })
   await page.getByRole('button', { name: 'high', exact: true }).click({ noWaitAfter: true })
   await page.getByRole('button', { name: 'Back to wandering' }).click({ noWaitAfter: true })
   await page.getByRole('dialog').waitFor({ state: 'hidden' })
   await page.waitForFunction(() => document.querySelector('.debug-panel')?.textContent.includes('HIGH /'), undefined, { timeout: 60000 })
   await page.waitForTimeout(2500)
   const highTelemetry = await page.locator('.debug-panel').innerText()
-  await page.getByRole('button', { name: 'Close diagnostics' }).click()
+  await page.getByRole('button', { name: 'Close diagnostics' }).click({ noWaitAfter: true })
   await page.screenshot({ path: 'artifacts/plaza-high.png', timeout: 60000 })
   checks.push('High quality loads full assets and shadows')
   await page.keyboard.press('F3')
@@ -116,7 +116,7 @@ try {
   if (!timeBounds) throw new Error('Time slider missing')
   await timeSlider.click({ position: { x: timeBounds.width * 0.9, y: timeBounds.height / 2 }, noWaitAfter: true })
   await page.getByText('Clear skies', { exact: true }).waitFor()
-  await page.getByRole('button', { name: 'Close diagnostics' }).click()
+  await page.getByRole('button', { name: 'Close diagnostics' }).click({ noWaitAfter: true })
   await page.screenshot({ path: 'artifacts/plaza-night.png', timeout: 60000 })
   checks.push('World clock changes sky, lighting, and night windows')
   await page.close()
@@ -145,9 +145,9 @@ try {
   const overflow = await mobile.evaluate(() => document.documentElement.scrollWidth > innerWidth)
   if (overflow) throw new Error('Mobile layout overflows')
   await mobile.screenshot({ path: 'artifacts/plaza-mobile.png', timeout: 60000 })
-  await mobile.getByRole('button', { name: 'Open Blossom Central map' }).click()
+  await mobile.getByRole('button', { name: 'Open Blossom Central map' }).click({ noWaitAfter: true })
   await mobile.getByRole('dialog').waitFor()
-  await mobile.getByRole('button', { name: 'Close dialog' }).click()
+  await mobile.getByRole('button', { name: 'Close dialog' }).click({ noWaitAfter: true })
   checks.push('390×844 mobile layout, actual touch joystick, and map controls')
   await mobile.close()
   const failed = await browser.newPage({ viewport: { width: 1100, height: 750 } })

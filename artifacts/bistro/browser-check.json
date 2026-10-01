@@ -1,0 +1,52 @@
+{
+  "testedAt": "2026-10-01T14:03:10.703Z",
+  "baseUrl": "http://127.0.0.1:4173",
+  "browser": "Chromium headless / SwiftShader",
+  "viewport": {
+    "width": 960,
+    "height": 720
+  },
+  "deviceScaleFactor": 0.5,
+  "checks": [
+    "Walked through the doorway using keyboard input",
+    "Pickup and explicit keyboard cancellation",
+    "Actual touch pickup and labeled cancellation",
+    "Return tray interaction and accessible sketchbook",
+    "Sketchbook completion survives reload"
+  ],
+  "path": [
+    {
+      "x": -15.044045889971944,
+      "z": 12
+    },
+    {
+      "x": -14.999814928048986,
+      "z": -5.67384165328126
+    },
+    {
+      "x": -15.00001096561194,
+      "z": -7.78383395774125
+    },
+    {
+      "x": -14.160961929612263,
+      "z": -8.585019806130818
+    },
+    {
+      "x": -15.037877557503984,
+      "z": -8.496165879600118
+    },
+    {
+      "x": -14.996536735276688,
+      "z": -11.119798066516225
+    },
+    {
+      "x": -15.940785714213229,
+      "z": -11.308139685454133
+    }
+  ],
+  "telemetry": "Runtime diagnostics\nFPS / frame\n4 / 273.4 ms\np95 frame\n296.1 ms\nDraws / triangles\n14 / 72,116\nBackend\nWebGL2\nLighting\nHemisphere ambient + sun\nRay tracing\nUnavailable\nQuality / DPR\nLITE / 0.50\nNPCs / petals\n2 / 100\nPlayer XYZ\n-15.9, 0.0, -11.3\nTime\n10:52\nWind\n0.6\nReturn to plaza entrance\nF3 to hide · measured runtime counters",
+  "errors": [],
+  "limitations": [
+    "No real-device FPS or skeletal-animation acceptance is implied."
+  ]
+}

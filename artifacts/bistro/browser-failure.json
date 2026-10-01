@@ -1,0 +1,14 @@
+{
+  "testedAt": "2026-10-01T13:31:52.179Z",
+  "error": "Traversal timeout toward -15,12",
+  "checks": [],
+  "path": [],
+  "errors": [],
+  "body": "ELYRIA\na little world of wonder\nBlossom Central\n11:19\nSunny\nWELCOME TO YOUR LITTLE TOMORROW\nA little wonder,\naround every corner.\n\nTake the long way home.\n\nVista\n0 places found\nN\nBlossom Central\n+\nSprint\nJump",
+  "position": {
+    "x": -17.252468326608493,
+    "z": 12
+  },
+  "status": "Resolved test-navigation attempt; superseded by passing actual-input browser-check.json",
+  "resolvedAt": "2026-10-01T13:41:42.456Z"
+}

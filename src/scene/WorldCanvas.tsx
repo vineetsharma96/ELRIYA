@@ -14,7 +14,7 @@ import { BistroVisibilityManager } from './bistroVisibility'
 import { IndoorCameraController } from './indoorCamera'
 import { INITIAL_SNAPSHOT, type WorldCanvasProps, type WorldSnapshot } from './types'
 
-const CAMERA = { position: [12, 13, 31] as [number, number, number], fov: 46, near: 0.2, far: 220 }
+const CAMERA = { position: [12, 13, 31] as [number, number, number], fov: 46, near: 0.1, far: 220 }
 const RENDERER = { antialias: true, alpha: false, powerPreference: 'high-performance' as const, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1 }
 
 export default function WorldCanvas(props: WorldCanvasProps) {
@@ -63,7 +63,7 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
   const collisionBoxes = useMemo(() => CAMERA_OBSTACLES_3D.map(b => new THREE.Box3(
     new THREE.Vector3(b.min[0], b.min[1], b.min[2]),
     new THREE.Vector3(b.max[0], b.max[1], b.max[2])
-  )), [])
+  ).expandByScalar(0.12)), [])
   const profile = useRef({ intervals: [] as number[], lastEmission: 0, skipNext: false })
   useEffect(() => {
     const changed = () => { profile.current.skipNext = true; profile.current.intervals = []; resetQualitySampling(quality) }
@@ -239,9 +239,9 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
     }
     camera.position.lerp(movement.desired, 1 - Math.exp(-delta * 7))
     camera.lookAt(target)
-    if (avatar.current) {
-      avatar.current.visible = camera.position.distanceTo(target) > 0.85
-    }
+    // Collision can force a first-person distance; keep the view unobstructed.
+    movement.direction.set(p.x, p.y + 1.4, p.z)
+    avatar.current.visible = indoorResult.indoorRatio < 0.5 || camera.position.distanceTo(movement.direction) > 1.75
 
     const encounter = bistroEncounter.getState({ x: p.x, z: p.z })
     if (cupRef.current) {
