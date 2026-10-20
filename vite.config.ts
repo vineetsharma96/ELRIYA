@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  server: { port: 5173, strictPort: true },
+  server: { port: 3000, host: '0.0.0.0', strictPort: true },
   build: {
     chunkSizeWarningLimit: 1500,
     rollupOptions: {

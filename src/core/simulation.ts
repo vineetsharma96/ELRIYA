@@ -1,4 +1,4 @@
-import type { Collider, Point2, SimulationInput, SimulationState } from './types';
+import type { Collider, Point2, SimulationInput, SimulationState, VehicleKind, VehicleState } from './types';
 import { WORLD } from './world';
 
 export type { SimulationInput, SimulationState } from './types';
@@ -15,6 +15,9 @@ const TAU = Math.PI * 2;
 
 const citizenRoute = WORLD.citizenRoute;
 const shuttleRoute = WORLD.shuttleRoute;
+const innerLaneRoute = WORLD.innerLaneRoute;
+const crossEastRoute = WORLD.crossEastRoute;
+const crossWestRoute = WORLD.crossWestRoute;
 
 function followLoop(route: Point2[], distance: number): Point2 & { yaw: number } {
   const lengths = route.map((point, i) => Math.hypot(route[(i + 1) % route.length].x - point.x, route[(i + 1) % route.length].z - point.z));
@@ -30,6 +33,62 @@ function followLoop(route: Point2[], distance: number): Point2 & { yaw: number }
   return { ...route[0], yaw: 0 };
 }
 
+interface VehicleSpec {
+  id: string;
+  kind: VehicleKind;
+  lane: VehicleState['lane'];
+  route: Point2[];
+  offset: number;
+  speed: number;
+  colorIndex: number;
+}
+
+const VEHICLE_SPECS: VehicleSpec[] = [
+  // Outer Lane (Clockwise around 2-lane Ring Boulevard) - 7 vehicles
+  { id: 'veh-outer-1', kind: 'shuttle', lane: 'outer', route: shuttleRoute, offset: 10, speed: 4.4, colorIndex: 0 },
+  { id: 'veh-outer-2', kind: 'sedan', lane: 'outer', route: shuttleRoute, offset: 54, speed: 4.4, colorIndex: 1 },
+  { id: 'veh-outer-3', kind: 'taxi', lane: 'outer', route: shuttleRoute, offset: 98, speed: 4.4, colorIndex: 2 },
+  { id: 'veh-outer-4', kind: 'coupe', lane: 'outer', route: shuttleRoute, offset: 142, speed: 4.4, colorIndex: 3 },
+  { id: 'veh-outer-5', kind: 'van', lane: 'outer', route: shuttleRoute, offset: 186, speed: 4.4, colorIndex: 4 },
+  { id: 'veh-outer-6', kind: 'sedan', lane: 'outer', route: shuttleRoute, offset: 230, speed: 4.4, colorIndex: 0 },
+  { id: 'veh-outer-7', kind: 'coupe', lane: 'outer', route: shuttleRoute, offset: 274, speed: 4.4, colorIndex: 2 },
+
+  // Inner Lane (Counter-Clockwise around 2-lane Ring Boulevard) - 7 vehicles
+  { id: 'veh-inner-1', kind: 'shuttle', lane: 'inner', route: innerLaneRoute, offset: 22, speed: 4.8, colorIndex: 1 },
+  { id: 'veh-inner-2', kind: 'coupe', lane: 'inner', route: innerLaneRoute, offset: 62, speed: 4.8, colorIndex: 4 },
+  { id: 'veh-inner-3', kind: 'van', lane: 'inner', route: innerLaneRoute, offset: 102, speed: 4.8, colorIndex: 0 },
+  { id: 'veh-inner-4', kind: 'taxi', lane: 'inner', route: innerLaneRoute, offset: 142, speed: 4.8, colorIndex: 2 },
+  { id: 'veh-inner-5', kind: 'sedan', lane: 'inner', route: innerLaneRoute, offset: 182, speed: 4.8, colorIndex: 3 },
+  { id: 'veh-inner-6', kind: 'shuttle', lane: 'inner', route: innerLaneRoute, offset: 222, speed: 4.8, colorIndex: 4 },
+  { id: 'veh-inner-7', kind: 'sedan', lane: 'inner', route: innerLaneRoute, offset: 262, speed: 4.8, colorIndex: 1 },
+
+  // Cross-Avenue Eastbound & South Loop - 3 vehicles
+  { id: 'veh-cross-e1', kind: 'taxi', lane: 'cross-east', route: crossEastRoute, offset: 15, speed: 4.1, colorIndex: 2 },
+  { id: 'veh-cross-e2', kind: 'coupe', lane: 'cross-east', route: crossEastRoute, offset: 72, speed: 4.1, colorIndex: 3 },
+  { id: 'veh-cross-e3', kind: 'van', lane: 'cross-east', route: crossEastRoute, offset: 128, speed: 4.1, colorIndex: 0 },
+
+  // Cross-Avenue Westbound & North Loop - 3 vehicles
+  { id: 'veh-cross-w1', kind: 'sedan', lane: 'cross-west', route: crossWestRoute, offset: 35, speed: 4.6, colorIndex: 4 },
+  { id: 'veh-cross-w2', kind: 'shuttle', lane: 'cross-west', route: crossWestRoute, offset: 125, speed: 4.6, colorIndex: 1 },
+  { id: 'veh-cross-w3', kind: 'coupe', lane: 'cross-west', route: crossWestRoute, offset: 215, speed: 4.6, colorIndex: 3 },
+];
+
+function computeVehicles(elapsed: number): VehicleState[] {
+  return VEHICLE_SPECS.map(spec => {
+    const pos = followLoop(spec.route, elapsed * spec.speed + spec.offset);
+    return {
+      id: spec.id,
+      x: pos.x,
+      z: pos.z,
+      yaw: pos.yaw,
+      kind: spec.kind,
+      lane: spec.lane,
+      colorIndex: spec.colorIndex,
+      speed: spec.speed,
+    };
+  });
+}
+
 export function createSimulation(): SimulationState {
   return {
     player: { ...WORLD.spawn, y: 0, yaw: Math.PI, speed: 0, velocityX: 0, velocityZ: 0, verticalVelocity: 0, grounded: true },
@@ -38,6 +97,7 @@ export function createSimulation(): SimulationState {
     frame: 0, elapsed: 0, jumpHeld: false,
     npcs: Array.from({ length: 16 }, (_, i) => ({ id: `citizen-${i + 1}`, ...followLoop(citizenRoute, i * 6.125), palette: i % 5 })),
     shuttle: followLoop(shuttleRoute, 10),
+    vehicles: computeVehicles(0),
   };
 }
 
@@ -137,7 +197,6 @@ export function stepSimulation(state: SimulationState, input: SimulationInput, d
   const distance = Math.hypot(dx, dz);
   if (distance > 1.7) {
     const travel = Math.min(distance - 1.7, (distance > 4 ? 8.5 : 5) * dt);
-    // Follow using the same boundaries, including the canal.
     const parts = Math.max(1, Math.ceil(travel / 0.08));
     for (let i = 0; i < parts; i++) {
       follower.x += dx / distance * travel / parts;
@@ -151,6 +210,17 @@ export function stepSimulation(state: SimulationState, input: SimulationInput, d
   state.time = ((state.time + dt / 60) % 24 + 24) % 24;
   state.frame++;
   state.npcs.forEach((npc, i) => Object.assign(npc, followLoop(citizenRoute, state.elapsed * (0.75 + (i % 3) * 0.08) + i * 6.125)));
-  Object.assign(state.shuttle, followLoop(shuttleRoute, state.elapsed * 3.8 + 10));
+  Object.assign(state.shuttle, followLoop(shuttleRoute, state.elapsed * 4.4 + 10));
+  if (state.vehicles) {
+    for (let i = 0; i < VEHICLE_SPECS.length; i++) {
+      const spec = VEHICLE_SPECS[i];
+      const pos = followLoop(spec.route, state.elapsed * spec.speed + spec.offset);
+      if (state.vehicles[i]) {
+        state.vehicles[i].x = pos.x;
+        state.vehicles[i].z = pos.z;
+        state.vehicles[i].yaw = pos.yaw;
+      }
+    }
+  }
   updateDiscovery(state);
 }

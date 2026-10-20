@@ -2,6 +2,7 @@ import { Component, useCallback, useEffect, useRef, useState, type ReactNode } f
 import WorldCanvas from './scene/WorldCanvas'
 import { INITIAL_SNAPSHOT, type CameraMode, type WorldApi, type WorldSnapshot } from './scene/types'
 import type { QualityMode } from './core/quality'
+import { WORLD } from './core/world'
 import Icon, { Blossom } from './ui/Icon'
 import Dialog from './ui/Dialog'
 import TouchControls from './ui/TouchControls'
@@ -28,7 +29,7 @@ const QUALITY_MODES: QualityMode[] = ['AUTO', 'ULTRA', 'HIGH', 'MEDIUM', 'LOW', 
 export default function App() {
   const apiRef = useRef<WorldApi | null>(null)
   const [snapshot, setSnapshot] = useState<WorldSnapshot>(INITIAL_SNAPSHOT)
-  const [modal, setModal] = useState<'menu' | 'map' | 'sketchbook' | null>(null)
+  const [modal, setModal] = useState<'menu' | 'map' | 'sketchbook' | 'blendkit' | null>(null)
   const [debug, setDebug] = useState(false)
   const [quality, setQuality] = useState<QualityMode>(() => {
     const requested = new URLSearchParams(window.location.search).get('quality')?.toUpperCase() as QualityMode
@@ -81,6 +82,7 @@ export default function App() {
       if (key === 'escape') { event.preventDefault(); setModal(current => current ? null : 'menu'); return }
       if (target?.closest('input, textarea, select, [contenteditable="true"]') || event.ctrlKey || event.metaKey || event.altKey) return
       if (key === 'm') { event.preventDefault(); setModal(current => current === 'map' ? null : 'map') }
+      else if (key === 'b') { event.preventDefault(); setModal(current => current === 'blendkit' ? null : 'blendkit') }
       else if (key === 'f3') { event.preventDefault(); setDebug(current => !current) }
       else if (!modal && key === 'c') toggleCamera()
       else if (!modal && key === 'e') interact()
@@ -105,9 +107,10 @@ export default function App() {
     <div className="game-hud">
       <header className="top-bar">
         <div className="wordmark" aria-label="Elyria"><Blossom /><span>ELYRIA</span><i>a little world of wonder</i></div>
-        <div className="location-pill"><span className="live-dot" /><span>Blossom Central</span><span className="location-divider" /><Icon name="leaf" size={14} /></div>
+        <div className="location-pill"><span className="live-dot" /><span>Blossom Central · 2-Lane District</span><span className="location-divider" /><Icon name="leaf" size={14} /></div>
         <div className="top-actions">
           <div className="weather-pill"><Icon name={night ? 'moon' : 'sun'} size={19} /><span>{formatTime(snapshot.time)}<small>{night ? 'Clear skies' : 'Sunny'}</small></span></div>
+          <button className="icon-button" aria-label="Open BlendKit asset catalog" title="BlendKit Free Assets (B)" onClick={() => setModal('blendkit')}><Icon name="leaf" /></button>
           {snapshot.bistroUnlocked && <button className="icon-button" aria-label="Open Sketchbook" title="Field Sketchbook" onClick={() => setModal('sketchbook')}><Icon name="compass" /></button>}
           <button className="icon-button" aria-label={audio ? 'Mute ambience' : 'Enable ambience'} title={audio ? 'Mute ambience' : 'Enable ambience'} aria-pressed={audio} onClick={() => setAudio(current => !current)}><Icon name={audio ? 'sound' : 'muted'} /></button>
           <button className="icon-button" aria-label="Open pause menu" title="Pause menu (Esc)" onClick={() => setModal('menu')}><Icon name="menu" /></button>
@@ -121,11 +124,11 @@ export default function App() {
       {toast && !modal && <div className="discovery-toast" role="status"><Blossom size={23} /><p>{toast}</p><button aria-label="Dismiss description" onClick={() => setToast(null)}><Icon name="close" size={16} /></button></div>}
 
       <div className="minimap-block">
-        <div className="minimap-actions"><button className="small-button" title="Switch camera (C)" aria-label={camera === 'follow' ? 'Switch to vista camera' : 'Switch to follow camera'} aria-pressed={camera === 'vista'} onClick={toggleCamera}><Icon name="camera" size={17} /><span>{camera === 'follow' ? 'Vista' : 'Follow'}</span></button><span className="exploration-label">{snapshot.discovered.length} places found</span></div>
+        <div className="minimap-actions"><button className="small-button" title="Switch camera (C)" aria-label={camera === 'follow' ? 'Switch to vista camera' : 'Switch to follow camera'} aria-pressed={camera === 'vista'} onClick={toggleCamera}><Icon name="camera" size={17} /><span>{camera === 'follow' ? 'Vista' : 'Follow'}</span></button><span className="exploration-label">{snapshot.discovered.length}/{WORLD.landmarks.length} places</span></div>
         <button className="minimap-button" onClick={() => setModal('map')} aria-label="Open Blossom Central map"><WorldMap snapshot={snapshot} /><span className="minimap-north">N</span><span className="minimap-footer"><span><Icon name="compass" size={14} /> Blossom Central</span><kbd>M</kbd></span></button>
       </div>
 
-      <footer className="controls-bar"><div className="control-item"><kbd>W A S D</kbd><span>Explore</span></div><div className="control-item"><kbd>Shift</kbd><span>Sprint</span></div><div className="control-item"><kbd>Space</kbd><span>Jump</span></div><div className="control-item"><kbd>E</kbd><span>Interact</span></div><div className="control-item"><kbd>Q</kbd><span>Cancel</span></div><div className="control-item"><kbd>C</kbd><span>Vista</span></div><div className="control-item"><kbd>M</kbd><span>Map</span></div><div className="camera-hint">Drag to look around</div></footer>
+      <footer className="controls-bar"><div className="control-item"><kbd>W A S D</kbd><span>Explore</span></div><div className="control-item"><kbd>Shift</kbd><span>Sprint</span></div><div className="control-item"><kbd>Space</kbd><span>Jump</span></div><div className="control-item"><kbd>E</kbd><span>Interact</span></div><div className="control-item"><kbd>Q</kbd><span>Cancel</span></div><div className="control-item"><kbd>C</kbd><span>Vista</span></div><div className="control-item"><kbd>M</kbd><span>Map</span></div><div className="control-item"><kbd>B</kbd><span>BlendKit</span></div><div className="camera-hint">Drag to look around</div></footer>
       <TouchControls apiRef={apiRef} disabled={modal !== null} canCancel={Boolean(snapshot.bistroCanCancel)} onCancel={cancelCarrying} />
     </div>
 
@@ -138,10 +141,34 @@ export default function App() {
       <button className="small-button debug-reset" onClick={() => apiRef.current?.resetPlayer()}>Return to plaza entrance</button><small>F3 to hide · measured runtime counters</small>
     </aside>}
 
-    {modal === 'menu' && <Dialog title="Stay a little longer." eyebrow="A MOMENT TO YOURSELF" onClose={() => setModal(null)}><p className="dialog-intro">The plaza will be here when you’re ready.</p><div className="menu-section"><label id="quality-label">Visual quality <span>{quality === 'AUTO' ? `Auto · ${snapshot.activeQuality.toLowerCase()}` : quality.toLowerCase()}</span></label><div className="quality-options" role="group" aria-labelledby="quality-label">{QUALITY_MODES.map(mode => <button key={mode} aria-pressed={quality === mode} className={quality === mode ? 'selected' : ''} onClick={() => setQuality(mode)}>{mode.toLowerCase()}</button>)}</div><p className="setting-note">Auto adjusts detail using the scene’s measured frame rate.</p></div><div className="menu-row"><span>Ambient sound<small>Soft tones for a slower afternoon</small></span><button className={`toggle ${audio ? 'on' : ''}`} role="switch" aria-checked={audio} aria-label="Ambient sound" onClick={() => setAudio(current => !current)}><span /></button></div><div className="menu-row"><span>Camera<small>A closer look or a wider perspective</small></span><button className="text-button" onClick={toggleCamera}>{camera === 'follow' ? 'Follow' : 'Vista'} <Icon name="camera" size={16} /></button></div><button className="primary-button resume-button" onClick={() => setModal(null)}>Back to wandering <Icon name="arrow" size={18} /></button><div className="menu-foot"><span>Blossom plaza · Early preview</span><button className="text-button" onClick={() => { setDebug(current => !current); setModal(null) }}>Diagnostics <kbd>F3</kbd></button></div></Dialog>}
+    {modal === 'menu' && <Dialog title="Stay a little longer." eyebrow="A MOMENT TO YOURSELF" onClose={() => setModal(null)}><p className="dialog-intro">The plaza will be here when you’re ready.</p><div className="menu-section"><label id="quality-label">Visual quality <span>{quality === 'AUTO' ? `Auto · ${snapshot.activeQuality.toLowerCase()}` : quality.toLowerCase()}</span></label><div className="quality-options" role="group" aria-labelledby="quality-label">{QUALITY_MODES.map(mode => <button key={mode} aria-pressed={quality === mode} className={quality === mode ? 'selected' : ''} onClick={() => setQuality(mode)}>{mode.toLowerCase()}</button>)}</div><p className="setting-note">Auto adjusts detail using the scene’s measured frame rate.</p></div><div className="menu-row"><span>Ambient sound<small>Soft tones for a slower afternoon</small></span><button className={`toggle ${audio ? 'on' : ''}`} role="switch" aria-checked={audio} aria-label="Ambient sound" onClick={() => setAudio(current => !current)}><span /></button></div><div className="menu-row"><span>Camera<small>A closer look or a wider perspective</small></span><button className="text-button" onClick={toggleCamera}>{camera === 'follow' ? 'Follow' : 'Vista'} <Icon name="camera" size={16} /></button></div><div className="menu-row"><span>BlendKit Free Assets<small>{WORLD.buildings.length} buildings · {WORLD.trees.length} trees · 24 vehicles</small></span><button className="text-button" onClick={() => setModal('blendkit')}>Inspect kit <Icon name="arrow" size={14} /></button></div><button className="primary-button resume-button" onClick={() => setModal(null)}>Back to wandering <Icon name="arrow" size={18} /></button><div className="menu-foot"><span>Blossom plaza · Remapped 2-Lane Edition</span><button className="text-button" onClick={() => { setDebug(current => !current); setModal(null) }}>Diagnostics <kbd>F3</kbd></button></div></Dialog>}
 
-    {modal === 'map' && <Dialog title="A place to get a little lost." eyebrow="BLOSSOM CENTRAL" onClose={() => setModal(null)} wide><p className="dialog-intro">A small corner of a bigger tomorrow. Wander over to discover each place.</p><div className="large-map"><WorldMap snapshot={snapshot} expanded /><span className="large-map-north">N ↑</span></div><div className="map-legend"><span><i className="legend-player" /> You are here</span><span><i className="legend-discovered" /> Discovered</span><span><i className="legend-place" /> A place to explore</span></div><p className="map-foot">{snapshot.discovered.length} places discovered <span>Map follows the actual plaza layout</span></p></Dialog>}
+    {modal === 'map' && <Dialog title="A place to get a little lost." eyebrow="BLOSSOM CENTRAL · REMAPPED DISTRICT" onClose={() => setModal(null)} wide><p className="dialog-intro">Expanded 2-lane boulevards, three canal bridges, {WORLD.buildings.length} buildings, {WORLD.trees.length} blossom trees, and {WORLD.flowers.length} garden blooms.</p><div className="large-map"><WorldMap snapshot={snapshot} expanded /><span className="large-map-north">N ↑</span></div><div className="map-legend"><span><i className="legend-player" /> You are here</span><span><i className="legend-discovered" /> Discovered ({snapshot.discovered.length}/{WORLD.landmarks.length})</span><span><i className="legend-place" /> Landmark</span><span>2-Lane Ring &amp; Cross Avenues</span></div><p className="map-foot">{snapshot.discovered.length} of {WORLD.landmarks.length} places discovered <span>24 vehicles active across 2-lane roads</span></p></Dialog>}
+
+    {modal === 'blendkit' && <Dialog title="BlendKit Free Asset Kit" eyebrow="HTTPS://WWW.BLENDKIT.COM/ · CITY REMAP INVENTORY" onClose={() => setModal(null)} wide>
+      <p className="dialog-intro">Remapped Blossom Central uses free modular Blender kit assets and procedural PBR multi-part assemblies across all five urban districts and two-lane boulevards.</p>
+      <div className="blendkit-stats">
+        <div><strong>{WORLD.buildings.length}</strong><span>Buildings</span></div>
+        <div><strong>24</strong><span>2-Lane Cars</span></div>
+        <div><strong>{WORLD.trees.length}</strong><span>Blossom Trees</span></div>
+        <div><strong>{WORLD.flowers.length}</strong><span>Flower Clusters</span></div>
+      </div>
+      <div className="blendkit-list">
+        {WORLD.blendkitCatalog.map(item => (
+          <div key={item.id} className="blendkit-item">
+            <div className="blendkit-item-head">
+              <strong>{item.name}</strong>
+              <span>{item.category} · {item.instances} in scene · {item.triangles.toLocaleString()} tris</span>
+            </div>
+            <p>{item.description}</p>
+            <small>{item.sourceUrl} · {item.license}</small>
+          </div>
+        ))}
+      </div>
+      <button className="primary-button resume-button" onClick={() => setModal(null)}>Back to wandering <Icon name="arrow" size={18} /></button>
+    </Dialog>}
 
     {modal === 'sketchbook' && <SketchbookDialog onClose={() => setModal(null)} />}
   </main>
 }
+

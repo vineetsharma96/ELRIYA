@@ -2,6 +2,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { Asset, Citizens } from './Assets'
+import { TrafficFleet } from './BlendKitAssets'
 import { Terrain, createCanalMaterial } from './Terrain'
 import { Petals } from './Petals'
 import { Ambience } from './audio'
@@ -288,19 +289,25 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
   })
 
   return <>
-    <fog attach="fog" args={['#c7ded9', 65, 205]} />
+    <fog attach="fog" args={['#c7ded9', 65, 220]} />
     <hemisphereLight ref={hemi} args={['#dbf1ff', '#a0b995', 2]} />
     <directionalLight ref={sun} position={[35, 55, -28]} intensity={3.3} color="#fff2d3" castShadow={settings.shadows}
       shadow-mapSize={[settings.shadowMapSize || 512, settings.shadowMapSize || 512]}
-      shadow-camera-left={-45} shadow-camera-right={45} shadow-camera-top={40} shadow-camera-bottom={-40}
-      shadow-camera-near={1} shadow-camera-far={150} shadow-normalBias={0.045} shadow-bias={-0.00012} />
+      shadow-camera-left={-56} shadow-camera-right={56} shadow-camera-top={52} shadow-camera-bottom={-52}
+      shadow-camera-near={1} shadow-camera-far={165} shadow-normalBias={0.045} shadow-bias={-0.00012} />
     <mesh ref={sunDisc}><sphereGeometry args={[5, 16, 12]} /><meshBasicMaterial color="#fff0c5" fog={false} /></mesh>
     <mesh ref={moonDisc}><sphereGeometry args={[3.6, 16, 12]} /><meshBasicMaterial color="#e6e9ec" fog={false} /></mesh>
     <Terrain vegetationDensity={settings.vegetationDensity} lowDetail={quality.tier === 'LOW' || quality.tier === 'LITE'} wind={wind} bistroInteriorRef={bistroInteriorRef} />
-    {[-23, 23].map(x => <mesh key={x} position={[x, 0.016, -27]} rotation-x={-Math.PI / 2} material={water}><planeGeometry args={[38, 7.8]} /></mesh>)}
+    {[
+      { x: -18.85, w: 29.7 },
+      { x: 18.85, w: 29.7 },
+      { x: -48.5, w: 11.6 },
+      { x: 48.5, w: 11.6 },
+    ].map(seg => <mesh key={seg.x} position={[seg.x, 0.016, -27]} rotation-x={-Math.PI / 2} material={water}><planeGeometry args={[seg.w, 7.8]} /></mesh>)}
     <group ref={avatar}><Asset name="protagonist" lite={quality.tier === 'LOW' || quality.tier === 'LITE'} /></group>
     <group ref={companion}><Asset name="companion" lite={quality.tier === 'LOW' || quality.tier === 'LITE'} /></group>
-    <group ref={shuttle}><Asset name="shuttle" lite={quality.tier === 'LOW' || quality.tier === 'LITE'} /></group>
+    <group ref={shuttle} visible={false}><Asset name="shuttle" lite={quality.tier === 'LOW' || quality.tier === 'LITE'} /></group>
+    <TrafficFleet simulation={simulation} lite={quality.tier === 'LOW' || quality.tier === 'LITE'} />
     <group ref={cupRef}><Asset name="bistroCup" lite={quality.tier === 'LOW' || quality.tier === 'LITE'} /></group>
     <Citizens simulation={simulation} count={settings.npcCount} lite={quality.tier === 'LOW' || quality.tier === 'LITE'} />
     <Petals count={settings.petalCount} simulation={simulation} wind={wind} />

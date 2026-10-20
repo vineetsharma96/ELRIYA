@@ -36,6 +36,62 @@ export interface CitizenState extends Point2 {
   palette: number;
 }
 
+export type VehicleKind = 'shuttle' | 'sedan' | 'coupe' | 'van' | 'taxi';
+
+export interface VehicleState extends Point2 {
+  id: string;
+  yaw: number;
+  kind: VehicleKind;
+  lane: 'outer' | 'inner' | 'cross-east' | 'cross-west';
+  colorIndex: number;
+  speed: number;
+}
+
+export type BuildingKind =
+  | 'bistro'
+  | 'cafe'
+  | 'apartment'
+  | 'tower'
+  | 'blendkit-townhouse'
+  | 'blendkit-arcade'
+  | 'blendkit-conservatory'
+  | 'blendkit-pavilion';
+
+export interface BuildingPlacement extends Point2 {
+  id: string;
+  name: string;
+  kind: BuildingKind;
+  rotation: number;
+  scale: number;
+  halfX: number;
+  halfZ: number;
+  height: number;
+  palette?: number;
+  blendkitId?: string;
+}
+
+export interface RoadSegment {
+  id: string;
+  x: number;
+  z: number;
+  length: number;
+  width: number;
+  orientation: 'horizontal' | 'vertical';
+  lanes: 2;
+  isBridge?: boolean;
+}
+
+export interface BlendKitAssetMeta {
+  id: string;
+  name: string;
+  category: 'Architecture' | 'Vehicles' | 'Vegetation' | 'Street & Props';
+  triangles: number;
+  instances: number;
+  sourceUrl: string;
+  license: 'CC0 / Free Commercial';
+  description: string;
+}
+
 export interface SimulationState {
   player: PlayerState;
   companion: Point2 & { yaw: number };
@@ -47,6 +103,8 @@ export interface SimulationState {
   elapsed: number;
   npcs: CitizenState[];
   shuttle: Point2 & { yaw: number };
+  vehicles: VehicleState[];
   /** Input edge state belongs to simulation so keyboard and touch agree. */
   jumpHeld: boolean;
 }
+

@@ -123,4 +123,22 @@ describe('world simulation', () => {
     const b = seededRandom(SEED);
     expect(Array.from({ length: 30 }, a)).toEqual(Array.from({ length: 30 }, b));
   });
+
+  it('provides a remapped 2-lane road network and high-density trees, flowers, buildings, and cars', () => {
+    const state = createSimulation();
+    expect(WORLD.roadSegments.length).toBeGreaterThanOrEqual(7);
+    expect(WORLD.roadSegments.every(seg => seg.lanes === 2)).toBe(true);
+    expect(WORLD.buildings.length).toBeGreaterThanOrEqual(20);
+    expect(WORLD.trees.length).toBeGreaterThanOrEqual(90);
+    expect(WORLD.flowers.length).toBeGreaterThanOrEqual(500);
+    expect(state.vehicles.length).toBeGreaterThanOrEqual(20);
+    expect(WORLD.blendkitCatalog.length).toBeGreaterThanOrEqual(8);
+
+    const initialPositions = state.vehicles.map(v => ({ x: v.x, z: v.z }));
+    advance(state, 2);
+    state.vehicles.forEach((v, idx) => {
+      expect(Math.hypot(v.x - initialPositions[idx].x, v.z - initialPositions[idx].z)).toBeGreaterThan(1);
+    });
+  });
 });
+
