@@ -1,4 +1,4 @@
-import type { Collider, Point2, SimulationInput, SimulationState, VehicleKind, VehicleState } from './types';
+import type { CitizenState, Collider, Point2, SimulationInput, SimulationState, VehicleKind, VehicleState } from './types';
 import { WORLD } from './world';
 
 export type { SimulationInput, SimulationState } from './types';
@@ -13,24 +13,106 @@ const MAX_DT = 0.1;
 const SUBSTEP = 1 / 120;
 const TAU = Math.PI * 2;
 
-const citizenRoute = WORLD.citizenRoute;
 const shuttleRoute = WORLD.shuttleRoute;
 const innerLaneRoute = WORLD.innerLaneRoute;
 const crossEastRoute = WORLD.crossEastRoute;
 const crossWestRoute = WORLD.crossWestRoute;
+const sidewalkRoutes = WORLD.sidewalkRoutes;
 
-function followLoop(route: Point2[], distance: number): Point2 & { yaw: number } {
-  const lengths = route.map((point, i) => Math.hypot(route[(i + 1) % route.length].x - point.x, route[(i + 1) % route.length].z - point.z));
+function shortestAngleDiff(from: number, to: number): number {
+  return ((to - from + Math.PI) % TAU + TAU) % TAU - Math.PI;
+}
+
+/**
+ * Shared pathfinding waypoint-loop follower for vehicles and autonomous sidewalk pedestrians.
+ * Supports bidirectional traversal (reversed) and optional smooth corner yaw blending.
+ */
+export function followLoop(
+  route: Point2[],
+  distance: number,
+  reversed = false,
+  cornerBlend = 0
+): Point2 & { yaw: number } {
+  const ordered = reversed ? [...route].reverse() : route;
+  const n = ordered.length;
+  const lengths = ordered.map((point, i) =>
+    Math.hypot(ordered[(i + 1) % n].x - point.x, ordered[(i + 1) % n].z - point.z)
+  );
   const total = lengths.reduce((sum, length) => sum + length, 0);
   let remaining = ((distance % total) + total) % total;
-  for (let i = 0; i < route.length; i++) {
-    if (remaining > lengths[i]) { remaining -= lengths[i]; continue; }
-    const start = route[i];
-    const end = route[(i + 1) % route.length];
-    const fraction = remaining / lengths[i];
-    return { x: start.x + (end.x - start.x) * fraction, z: start.z + (end.z - start.z) * fraction, yaw: Math.atan2(end.x - start.x, end.z - start.z) };
+  for (let i = 0; i < n; i++) {
+    const segLen = lengths[i];
+    if (remaining > segLen) {
+      remaining -= segLen;
+      continue;
+    }
+    const start = ordered[i];
+    const end = ordered[(i + 1) % n];
+    const fraction = segLen > 0 ? remaining / segLen : 0;
+    const x = start.x + (end.x - start.x) * fraction;
+    const z = start.z + (end.z - start.z) * fraction;
+    let yaw = Math.atan2(end.x - start.x, end.z - start.z);
+
+    if (cornerBlend > 0 && segLen > cornerBlend * 2) {
+      const distToEnd = segLen - remaining;
+      if (distToEnd < cornerBlend) {
+        const nextEnd = ordered[(i + 2) % n];
+        const nextYaw = Math.atan2(nextEnd.x - end.x, nextEnd.z - end.z);
+        const t = 0.5 * (1 - distToEnd / cornerBlend);
+        yaw += shortestAngleDiff(yaw, nextYaw) * t;
+      } else if (remaining < cornerBlend) {
+        const prevStart = ordered[(i - 1 + n) % n];
+        const prevYaw = Math.atan2(start.x - prevStart.x, start.z - prevStart.z);
+        const t = 0.5 * (1 - remaining / cornerBlend);
+        yaw += shortestAngleDiff(yaw, prevYaw) * t;
+      }
+    }
+
+    return { x, z, yaw };
   }
-  return { ...route[0], yaw: 0 };
+  return { ...ordered[0], yaw: 0 };
+}
+
+interface PedestrianSpec {
+  id: string;
+  routeId: string;
+  route: Point2[];
+  offset: number;
+  speed: number;
+  reversed: boolean;
+  palette: number;
+}
+
+const PEDESTRIAN_SPECS: PedestrianSpec[] = Array.from({ length: 36 }, (_, i) => {
+  // First 6 agents walk along the primary central plaza sidewalk loop; remaining 30 span all 8 city sidewalk loops
+  const routeObj = i < 4 ? sidewalkRoutes[0] : sidewalkRoutes[i % sidewalkRoutes.length];
+  const reversed = i >= 4 && i % 2 === 1;
+  const speed = Number((0.78 + (i % 5) * 0.085).toFixed(3));
+  const offset = Number((i * 11.25 + (i % 3) * 4.5).toFixed(3));
+  return {
+    id: `citizen-${i + 1}`,
+    routeId: routeObj.id,
+    route: routeObj.waypoints,
+    offset,
+    speed,
+    reversed,
+    palette: i % 5,
+  };
+});
+
+function computePedestrians(elapsed: number): CitizenState[] {
+  return PEDESTRIAN_SPECS.map(spec => {
+    const pos = followLoop(spec.route, elapsed * spec.speed + spec.offset, spec.reversed, 1.1);
+    return {
+      id: spec.id,
+      x: pos.x,
+      z: pos.z,
+      yaw: pos.yaw,
+      palette: spec.palette,
+      routeId: spec.routeId,
+      speed: spec.speed,
+    };
+  });
 }
 
 interface VehicleSpec {
@@ -95,7 +177,7 @@ export function createSimulation(): SimulationState {
     companion: { x: WORLD.spawn.x + 1.4, z: WORLD.spawn.z + 1.4, yaw: Math.PI },
     time: 9.5, paused: false, discovered: [], nearLandmark: null,
     frame: 0, elapsed: 0, jumpHeld: false,
-    npcs: Array.from({ length: 16 }, (_, i) => ({ id: `citizen-${i + 1}`, ...followLoop(citizenRoute, i * 6.125), palette: i % 5 })),
+    npcs: computePedestrians(0),
     shuttle: followLoop(shuttleRoute, 10),
     vehicles: computeVehicles(0),
   };
@@ -209,7 +291,16 @@ export function stepSimulation(state: SimulationState, input: SimulationInput, d
   state.elapsed += dt;
   state.time = ((state.time + dt / 60) % 24 + 24) % 24;
   state.frame++;
-  state.npcs.forEach((npc, i) => Object.assign(npc, followLoop(citizenRoute, state.elapsed * (0.75 + (i % 3) * 0.08) + i * 6.125)));
+  for (let i = 0; i < PEDESTRIAN_SPECS.length; i++) {
+    const spec = PEDESTRIAN_SPECS[i];
+    const npc = state.npcs[i];
+    if (npc) {
+      const pos = followLoop(spec.route, state.elapsed * spec.speed + spec.offset, spec.reversed, 1.1);
+      npc.x = pos.x;
+      npc.z = pos.z;
+      npc.yaw = pos.yaw;
+    }
+  }
   Object.assign(state.shuttle, followLoop(shuttleRoute, state.elapsed * 4.4 + 10));
   if (state.vehicles) {
     for (let i = 0; i < VEHICLE_SPECS.length; i++) {

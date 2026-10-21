@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createSimulation, EMPTY_INPUT, PLAYER_RADIUS, SPRINT_SPEED, stepSimulation, WALK_SPEED } from '../simulation';
+import { createSimulation, EMPTY_INPUT, followLoop, PLAYER_RADIUS, SPRINT_SPEED, stepSimulation, WALK_SPEED } from '../simulation';
 import type { SimulationInput, SimulationState } from '../types';
 import { SEED, seededRandom, WORLD } from '../world';
 
@@ -140,5 +140,36 @@ describe('world simulation', () => {
       expect(Math.hypot(v.x - initialPositions[idx].x, v.z - initialPositions[idx].z)).toBeGreaterThan(1);
     });
   });
+
+  it('walks autonomous pedestrian NPC agents along city sidewalks using followLoop pathfinding', () => {
+    const state = createSimulation();
+    expect(WORLD.sidewalkRoutes.length).toBeGreaterThanOrEqual(8);
+    expect(state.npcs.length).toBe(36);
+
+    const usedRoutes = new Set(state.npcs.map(npc => npc.routeId));
+    expect(usedRoutes.size).toBe(WORLD.sidewalkRoutes.length);
+
+    const initialNpcs = state.npcs.map(npc => ({ x: npc.x, z: npc.z }));
+    advance(state, 3);
+
+    state.npcs.forEach((npc, index) => {
+      const moved = Math.hypot(npc.x - initialNpcs[index].x, npc.z - initialNpcs[index].z);
+      expect(moved).toBeGreaterThan(1.5);
+      // Verify no pedestrian walks inside a solid building footprint
+      for (const building of WORLD.buildings) {
+        const insideBuilding =
+          Math.abs(npc.x - building.x) < building.halfX - 0.1 &&
+          Math.abs(npc.z - building.z) < building.halfZ - 0.1;
+        expect(insideBuilding).toBe(false);
+      }
+    });
+
+    // Verify bidirectional & corner-blended followLoop pathfinding
+    const route = WORLD.sidewalkRoutes[0].waypoints;
+    const forward = followLoop(route, 5, false, 1.1);
+    const backward = followLoop(route, 5, true, 1.1);
+    expect(Math.hypot(forward.x - backward.x, forward.z - backward.z)).toBeGreaterThan(1);
+  });
 });
+
 

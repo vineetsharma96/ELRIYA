@@ -13,6 +13,7 @@ import { WORLD, getLandmark, CAMERA_OBSTACLES_3D } from '../core/world'
 import { createBistroEncounter, DEFAULT_BISTRO_ANCHORS } from '../core/bistroEncounter'
 import { BistroVisibilityManager } from './bistroVisibility'
 import { IndoorCameraController } from './indoorCamera'
+import { EnvironmentLightingController } from './lighting'
 import { INITIAL_SNAPSHOT, type WorldCanvasProps, type WorldSnapshot } from './types'
 
 const CAMERA = { position: [12, 13, 31] as [number, number, number], fov: 46, near: 0.1, far: 220 }
@@ -39,6 +40,7 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
   const quality = useMemo(() => createQualityState(qualityMode), [])
   const bistroEncounter = useMemo(createBistroEncounter, [])
   const indoorCameraController = useMemo(() => new IndoorCameraController(), [])
+  const lightingController = useMemo(() => new EnvironmentLightingController(simulation.time), [simulation])
   const cupRef = useRef<THREE.Group>(null!)
   const bistroInteriorRef = useRef<THREE.Group>(null!)
   const bistroVisibility = useMemo(() => new BistroVisibilityManager(), [])
@@ -126,7 +128,11 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
   useEffect(() => () => { ambience.dispose(); water.dispose() }, [ambience, water])
   useEffect(() => {
     apiRef.current = {
-      setTime: value => { simulation.time = ((value % 24) + 24) % 24 },
+      setTime: value => {
+        const normalized = ((value % 24) + 24) % 24
+        simulation.time = normalized
+        snapshot.current.time = normalized
+      },
       setWind: value => { wind.value = THREE.MathUtils.clamp(value, 0, 2) },
       resetPlayer: () => {
         const fresh = createSimulation()
@@ -199,24 +205,26 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
     shuttle.current.position.set(simulation.shuttle.x, 0, simulation.shuttle.z)
     shuttle.current.rotation.y = simulation.shuttle.yaw
 
-    const cycle = (simulation.time - 6) / 24 * Math.PI * 2
-    const daylight = THREE.MathUtils.smoothstep(Math.sin(cycle), -0.18, 0.5)
-    sun.current.position.set(Math.cos(cycle) * 50, Math.max(8, Math.sin(cycle) * 65), -28)
-    sun.current.intensity = daylight * 2.4 + 0.08
-    sun.current.color.set(daylight > 0.7 ? '#fff2d3' : '#ffd3a4')
-    hemi.current.intensity = 0.4 + daylight * 0.85
-    hemi.current.color.set(daylight > 0.3 ? '#dbf1ff' : '#7182b1')
-    emissive.current.forEach(material => { material.emissiveIntensity = 0.12 + (1 - daylight) * 1.65 })
-    nightUniforms.current.forEach(uniform => { uniform.value = 0.12 + (1 - daylight) * 1.65 })
-    movement.sky.set('#303d63').lerp(new THREE.Color('#c7ded9'), daylight)
+    const env = lightingController.update(simulation.time, delta)
+    sun.current.position.copy(env.keyLightPosition)
+    sun.current.intensity = env.sunIntensity
+    sun.current.color.copy(env.sunColor)
+    hemi.current.intensity = env.hemiIntensity
+    hemi.current.color.copy(env.hemiSkyColor)
+    hemi.current.groundColor.copy(env.hemiGroundColor)
+    emissive.current.forEach(material => { material.emissiveIntensity = env.emissiveIntensity })
+    nightUniforms.current.forEach(uniform => { uniform.value = env.emissiveIntensity })
+    movement.sky.copy(env.skyColor)
     scene.background = movement.sky
-    if (scene.fog instanceof THREE.Fog) { scene.fog.color.copy(movement.sky); scene.fog.far = 140 + daylight * 65 }
-    sunDisc.current.position.set(Math.cos(cycle) * 115, Math.sin(cycle) * 115, -95)
-    sunDisc.current.visible = Math.sin(cycle) > -0.1
-    moonDisc.current.position.set(-Math.cos(cycle) * 115, -Math.sin(cycle) * 115, -95)
-    moonDisc.current.visible = Math.sin(cycle) < 0.1
+    if (scene.fog instanceof THREE.Fog) { scene.fog.color.copy(movement.sky); scene.fog.far = env.fogFar }
+    sunDisc.current.position.copy(env.sunDiscPosition)
+    sunDisc.current.scale.setScalar(Math.max(0.001, env.sunScale))
+    sunDisc.current.visible = env.sunScale > 0.01
+    moonDisc.current.position.copy(env.moonDiscPosition)
+    moonDisc.current.scale.setScalar(Math.max(0.001, env.moonScale))
+    moonDisc.current.visible = env.moonScale > 0.01
     water.uniforms.uTime.value = simulation.elapsed
-    water.uniforms.uDay.value = daylight
+    water.uniforms.uDay.value = env.daylight
 
     const follow = cameraMode === 'follow'
     const target = movement.target
@@ -258,6 +266,22 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
       bistroInteriorRef.current.visible = bistroVisibility.shouldRenderInterior({ x: camera.position.x, z: camera.position.z })
     }
 
+    // Update 3D spatial audio listener and localized cherry blossom cluster birdsong
+    movement.direction.subVectors(target, camera.position).normalize()
+    const spatialAudio = ambience.updateSpatial(
+      {
+        x: p.x,
+        y: p.y + 1.4,
+        z: p.z,
+        forwardX: movement.direction.x,
+        forwardY: movement.direction.y,
+        forwardZ: movement.direction.z,
+      },
+      env.daylight,
+      wind.value,
+      delta
+    )
+
     const now = performance.now()
     const measuredMs = rawDelta * 1000
     if (!document.hidden && !paused && !profile.current.skipNext && updateAdaptiveQuality(quality, measuredMs, now)) setSettings({ ...getQualitySettings(quality) })
@@ -271,22 +295,33 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
       const intervals = profile.current.intervals
       const mean = intervals.reduce((sum, ms) => sum + ms, 0) / Math.max(1, intervals.length)
       const sorted = [...intervals].sort((a, b) => a - b)
+      const activeNpcCount = Math.min(
+        simulation.npcs.length,
+        settings.npcCount >= 16 ? 36 : settings.npcCount >= 10 ? 28 : settings.npcCount >= 6 ? 18 : settings.npcCount * 3
+      )
       snapshot.current = {
         ready: true, fps: mean > 0 ? 1000 / mean : 0, frameMs: mean,
         p95Ms: sorted[Math.floor(sorted.length * 0.95)] ?? 0,
         drawCalls: gl.info.render.calls, triangles: gl.info.render.triangles,
         player: { x: p.x, y: p.y, z: p.z }, time: simulation.time,
         nearLandmark: simulation.nearLandmark, discovered: [...simulation.discovered],
-        npcCount: settings.npcCount, petalCount: settings.petalCount,
+        npcCount: activeNpcCount, petalCount: settings.petalCount,
         activeQuality: quality.tier, renderScale: gl.getPixelRatio(), wind: wind.value,
         backend: 'WebGL2', lighting: 'Hemisphere ambient + sun',
         bistroPrompt: encounter.promptText,
         bistroCanCancel: encounter.cupState === 'carried',
         bistroUnlocked: bistroEncounter.isUnlocked(),
+        spatialAudioCluster: spatialAudio.activeCluster ? `${spatialAudio.activeCluster.id} (${spatialAudio.activeCluster.treeCount} trees)` : 'None',
+        spatialBirdIntensity: spatialAudio.intensity,
       }
       onSnapshotRef.current(snapshot.current)
     }
   })
+
+  const renderedNpcCount = Math.min(
+    simulation.npcs.length,
+    settings.npcCount >= 16 ? 36 : settings.npcCount >= 10 ? 28 : settings.npcCount >= 6 ? 18 : settings.npcCount * 3
+  )
 
   return <>
     <fog attach="fog" args={['#c7ded9', 65, 220]} />
@@ -309,7 +344,7 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
     <group ref={shuttle} visible={false}><Asset name="shuttle" lite={quality.tier === 'LOW' || quality.tier === 'LITE'} /></group>
     <TrafficFleet simulation={simulation} lite={quality.tier === 'LOW' || quality.tier === 'LITE'} />
     <group ref={cupRef}><Asset name="bistroCup" lite={quality.tier === 'LOW' || quality.tier === 'LITE'} /></group>
-    <Citizens simulation={simulation} count={settings.npcCount} lite={quality.tier === 'LOW' || quality.tier === 'LITE'} />
+    <Citizens simulation={simulation} count={renderedNpcCount} lite={quality.tier === 'LOW' || quality.tier === 'LITE'} />
     <Petals count={settings.petalCount} simulation={simulation} wind={wind} />
   </>
 }

@@ -24,6 +24,8 @@ export interface WorldSnapshot {
   bistroPrompt?: string | null
   bistroCanCancel?: boolean
   bistroUnlocked?: boolean
+  spatialAudioCluster?: string | null
+  spatialBirdIntensity?: number
 }
 export interface WorldApi {
   setTime(hours: number): void

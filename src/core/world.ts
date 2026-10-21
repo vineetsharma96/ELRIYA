@@ -5,6 +5,7 @@ import type {
   Landmark,
   Point2,
   RoadSegment,
+  SidewalkRoute,
 } from './types';
 import bistroContract from '../../public/assets/architecture/blossom_bistro_contract.json';
 
@@ -365,6 +366,89 @@ export const BLENDKIT_CATALOG: BlendKitAssetMeta[] = [
   },
 ];
 
+export const SIDEWALK_ROUTES: SidewalkRoute[] = [
+  {
+    id: 'plaza-promenade',
+    name: 'Central Plaza & Bistro Sidewalk',
+    waypoints: [
+      { x: -8, z: 14 },
+      { x: -8, z: -19 },
+      { x: 8, z: -19 },
+      { x: 8, z: 14 },
+    ],
+  },
+  {
+    id: 'west-arcade-sidewalk',
+    name: 'West Quarter Arcade & Lofts Sidewalk',
+    waypoints: [
+      { x: -20.5, z: 15.8 },
+      { x: -20.5, z: -21.5 },
+      { x: -32.6, z: -21.5 },
+      { x: -32.6, z: 15.8 },
+    ],
+  },
+  {
+    id: 'east-conservatory-sidewalk',
+    name: 'East Quarter Conservatory & Tower Sidewalk',
+    waypoints: [
+      { x: 20.5, z: -21.5 },
+      { x: 20.5, z: 16.1 },
+      { x: 32.6, z: 16.1 },
+      { x: 32.6, z: -21.5 },
+    ],
+  },
+  {
+    id: 'south-avenue-sidewalk',
+    name: 'South Avenue Station Sidewalk Loop',
+    waypoints: [
+      { x: -32.6, z: 24.8 },
+      { x: 32.6, z: 24.8 },
+      { x: 32.6, z: 32.1 },
+      { x: -32.6, z: 32.1 },
+    ],
+  },
+  {
+    id: 'canal-bridge-connector',
+    name: 'Sunpetal Canal Bridge Pedestrian Loop',
+    waypoints: [
+      { x: -2.2, z: 14 },
+      { x: -2.2, z: -31.4 },
+      { x: 2.2, z: -31.4 },
+      { x: 2.2, z: 14 },
+    ],
+  },
+  {
+    id: 'northbank-waterfront-sidewalk',
+    name: 'Northbank Canal & Spire Sidewalk',
+    waypoints: [
+      { x: -32.6, z: -31.4 },
+      { x: 32.6, z: -31.4 },
+      { x: 32.6, z: -41.4 },
+      { x: -32.6, z: -41.4 },
+    ],
+  },
+  {
+    id: 'outer-boulevard-sidewalk',
+    name: 'Outer Ring Boulevard Sidewalk',
+    waypoints: [
+      { x: -43.2, z: 41.2 },
+      { x: 43.2, z: 41.2 },
+      { x: 43.2, z: -41.4 },
+      { x: -43.2, z: -41.4 },
+    ],
+  },
+  {
+    id: 'pocket-garden-stroll',
+    name: 'Pocket Garden & Cross-Avenue Sidewalk',
+    waypoints: [
+      { x: -32.6, z: 16.1 },
+      { x: 32.6, z: 16.1 },
+      { x: 32.6, z: -21.5 },
+      { x: -32.6, z: -21.5 },
+    ],
+  },
+];
+
 export const WORLD = {
   bounds: { minX: -54, maxX: 54, minZ: -54, maxZ: 54 },
   spawn: { x: 0, z: 12 },
@@ -372,12 +456,8 @@ export const WORLD = {
   buildings: BUILDINGS,
   colliders,
   roadSegments: ROAD_SEGMENTS,
-  citizenRoute: [
-    { x: -8, z: 14 },
-    { x: -8, z: -19 },
-    { x: 8, z: -19 },
-    { x: 8, z: 14 },
-  ] as Point2[],
+  citizenRoute: SIDEWALK_ROUTES[0].waypoints,
+  sidewalkRoutes: SIDEWALK_ROUTES,
   shuttleRoute: OUTER_LANE_ROUTE,
   innerLaneRoute: INNER_LANE_ROUTE,
   crossEastRoute: CROSS_EAST_ROUTE,

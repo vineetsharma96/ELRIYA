@@ -124,25 +124,44 @@ export function Citizens({ simulation, count, lite = false }: { simulation: Simu
   return <group>{parts.map((part, i) => <CitizenPart key={i} {...part} simulation={simulation} count={count} />)}</group>
 }
 
+const CITIZEN_TINTS = [
+  new THREE.Color('#ffffff'),
+  new THREE.Color('#fce6e8'),
+  new THREE.Color('#e6f5ee'),
+  new THREE.Color('#fef3dc'),
+  new THREE.Color('#eee6fa'),
+]
+
 function CitizenPart({ geometry, material, matrix, simulation, count }: {
   geometry: THREE.BufferGeometry; material: THREE.Material | THREE.Material[]; matrix: THREE.Matrix4; simulation: SimulationState; count: number
 }) {
   const ref = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
   const instance = useMemo(() => new THREE.Matrix4(), [])
-  useFrame(() => {
-    for (let i = 0; i < count; i++) {
+  const safeCount = Math.min(count, simulation.npcs.length)
+  useLayoutEffect(() => {
+    for (let i = 0; i < safeCount; i++) {
       const npc = simulation.npcs[i]
-      dummy.position.set(npc.x, Math.sin(simulation.elapsed * 5 + i) * 0.02, npc.z)
-      dummy.rotation.y = npc.yaw
-      dummy.scale.setScalar(0.88 + (i % 3) * 0.06)
+      ref.current.setColorAt(i, CITIZEN_TINTS[(npc?.palette ?? i) % CITIZEN_TINTS.length])
+    }
+    if (ref.current.instanceColor) ref.current.instanceColor.needsUpdate = true
+  }, [safeCount, simulation])
+  useFrame(() => {
+    for (let i = 0; i < safeCount; i++) {
+      const npc = simulation.npcs[i]
+      const walkSpeed = npc.speed ?? 0.9
+      const stridePhase = simulation.elapsed * walkSpeed * 6.5 + i * 1.37
+      const strideBob = Math.abs(Math.sin(stridePhase)) * 0.036
+      dummy.position.set(npc.x, strideBob, npc.z)
+      dummy.rotation.set(0, npc.yaw, Math.sin(stridePhase) * 0.025)
+      dummy.scale.setScalar(0.86 + (i % 4) * 0.045)
       dummy.updateMatrix()
       ref.current.setMatrixAt(i, instance.copy(dummy.matrix).multiply(matrix))
     }
     ref.current.instanceMatrix.needsUpdate = true
     ref.current.computeBoundingSphere()
   })
-  return <instancedMesh key={count} ref={ref} args={[geometry, material, count]} castShadow receiveShadow />
+  return <instancedMesh key={safeCount} ref={ref} args={[geometry, material, safeCount]} castShadow receiveShadow />
 }
 
 export interface WindField { value: number; time: number }

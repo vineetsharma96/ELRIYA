@@ -34,6 +34,14 @@ export interface CitizenState extends Point2 {
   id: string;
   yaw: number;
   palette: number;
+  routeId?: string;
+  speed?: number;
+}
+
+export interface SidewalkRoute {
+  id: string;
+  name: string;
+  waypoints: Point2[];
 }
 
 export type VehicleKind = 'shuttle' | 'sedan' | 'coupe' | 'van' | 'taxi';
