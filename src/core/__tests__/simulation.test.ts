@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { createSimulation, EMPTY_INPUT, followLoop, PLAYER_RADIUS, SPRINT_SPEED, stepSimulation, WALK_SPEED } from '../simulation';
 import type { SimulationInput, SimulationState } from '../types';
 import { SEED, seededRandom, WORLD } from '../world';
+import { buildDetailedTreeSpec } from '../../scene/Assets';
+import { generateTreeCanopySpawns } from '../../scene/Petals';
 
 function advance(state: SimulationState, seconds: number, input: Partial<SimulationInput> = {}) {
   for (let i = 0; i < Math.round(seconds * 60); i++) stepSimulation(state, { ...EMPTY_INPUT, ...input }, 1 / 60);
@@ -170,6 +172,62 @@ describe('world simulation', () => {
     const backward = followLoop(route, 5, true, 1.1);
     expect(Math.hypot(forward.x - backward.x, forward.z - backward.z)).toBeGreaterThan(1);
   });
+
+  it('periodically transitions weather between sunny, overcast, and light_rain conditions', () => {
+    const state = createSimulation();
+    expect(state.weather.condition).toBe('sunny');
+    expect(state.weather.cloudCover).toBe(0);
+    expect(state.weather.rainIntensity).toBe(0);
+
+    // Advance into overcast phase (~28s)
+    advance(state, 28);
+    expect(state.weather.condition).toBe('overcast');
+    expect(state.weather.cloudCover).toBeGreaterThan(0.5);
+    expect(state.weather.rainIntensity).toBe(0);
+
+    // Advance into light rain phase (~52s total)
+    advance(state, 24);
+    expect(state.weather.condition).toBe('light_rain');
+    expect(state.weather.cloudCover).toBeGreaterThan(0.9);
+    expect(state.weather.rainIntensity).toBeGreaterThan(0.9);
+
+    // Advance back to overcast clearing (~72s total) and sunny (~92s total)
+    advance(state, 20);
+    expect(state.weather.condition).toBe('overcast');
+    advance(state, 20);
+    expect(state.weather.condition).toBe('sunny');
+    expect(state.weather.rainIntensity).toBe(0);
+  });
+
+  it('builds multi-layered botanical tree detail and spawns falling leaves and petals from tree canopies', () => {
+    const treeParts = buildDetailedTreeSpec();
+    expect(treeParts.length).toBeGreaterThanOrEqual(80);
+    const partKinds = new Set(treeParts.map(p => p.kind));
+    expect(partKinds.has('root_buttress')).toBe(true);
+    expect(partKinds.has('branch_limb')).toBe(true);
+    expect(partKinds.has('blossom_puff')).toBe(true);
+    expect(partKinds.has('weeping_bough')).toBe(true);
+    expect(partKinds.has('leaf_sprig')).toBe(true);
+    expect(partKinds.has('fallen_petal_mound')).toBe(true);
+
+    const spawns = generateTreeCanopySpawns(600);
+    expect(spawns).toHaveLength(600);
+    const leafKinds = new Set(spawns.map(s => s.kind));
+    expect(leafKinds.has('cherry_leaf')).toBe(true);
+    expect(leafKinds.has('sakura_petal')).toBe(true);
+    expect(leafKinds.has('blush_petal')).toBe(true);
+
+    spawns.forEach(spawn => {
+      const parentTree = WORLD.trees[spawn.treeIndex];
+      expect(parentTree).toBeDefined();
+      const radialDistance = Math.hypot(spawn.spawnX - parentTree.x, spawn.spawnZ - parentTree.z);
+      expect(radialDistance).toBeLessThanOrEqual(2.35 * parentTree.scale);
+      expect(spawn.spawnY).toBeGreaterThanOrEqual(2.6 * parentTree.scale);
+      expect(spawn.spawnY).toBeLessThanOrEqual(5.0 * parentTree.scale);
+    });
+  });
 });
+
+
 
 

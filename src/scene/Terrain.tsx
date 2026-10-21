@@ -1,6 +1,6 @@
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import { Asset, InstancedAsset, type WindField } from './Assets'
+import { Asset, DetailedTreeCanopy, InstancedAsset, type WindField } from './Assets'
 import { BlendKitBuilding } from './BlendKitAssets'
 import { WORLD } from '../core/world'
 
@@ -170,22 +170,8 @@ export function Terrain({
     [vegetationDensity]
   )
 
-  // 28 Street Lamps along the 2-lane boulevards, cross-avenue, and canal promenades
-  const lamps = useMemo(
-    () => [
-      ...[-30, -18, -6, 6, 18, 30].flatMap(x => [
-        { x, z: 31.2, rotation: 0 },
-        { x, z: 16.0, rotation: Math.PI },
-        { x, z: -22.2, rotation: Math.PI },
-        { x, z: -31.2, rotation: 0 },
-      ]),
-      { x: -33.2, z: -8, rotation: Math.PI / 2 },
-      { x: -33.2, z: 8, rotation: Math.PI / 2 },
-      { x: 33.2, z: -8, rotation: -Math.PI / 2 },
-      { x: 33.2, z: 8, rotation: -Math.PI / 2 },
-    ],
-    []
-  )
+  // 46 Street Lamps along the 2-lane boulevards, cross-avenue, central plaza, and canal promenades
+  const lamps = WORLD.streetLamps
 
   // 16 Benches across the plazas, gardens, and canal banks
   const benches = useMemo(
@@ -313,6 +299,7 @@ export function Terrain({
 
       {/* Instanced Vegetation & Street Furniture */}
       <InstancedAsset name={lowDetail ? 'treeLow' : 'tree'} placements={trees} wind={wind} lite={lowDetail} />
+      <DetailedTreeCanopy placements={trees} wind={wind} lite={lowDetail} />
       <InstancedAsset name={lowDetail ? 'flowersLow' : 'flowers'} placements={flowers} lite={lowDetail} />
       <InstancedAsset name="lamp" placements={lamps} lite={lowDetail} />
       <InstancedAsset name="bench" placements={benches} lite={lowDetail} />

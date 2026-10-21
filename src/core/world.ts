@@ -6,6 +6,7 @@ import type {
   Point2,
   RoadSegment,
   SidewalkRoute,
+  StreetLampPlacement,
 } from './types';
 import bistroContract from '../../public/assets/architecture/blossom_bistro_contract.json';
 
@@ -449,6 +450,40 @@ export const SIDEWALK_ROUTES: SidewalkRoute[] = [
   },
 ];
 
+const RAW_STREET_LAMPS: { x: number; z: number; rotation: number }[] = [
+  // South Boulevard, Cross-Avenue, South Canal Promenade, and North Boulevard sidewalks
+  ...[-30, -18, -6, 6, 18, 30].flatMap(x => [
+    { x, z: 31.2, rotation: -Math.PI / 2 },
+    { x, z: 40.8, rotation: Math.PI / 2 },
+    { x, z: 16.0, rotation: -Math.PI / 2 },
+    { x, z: 25.0, rotation: Math.PI / 2 },
+    { x, z: -22.2, rotation: Math.PI / 2 },
+    { x, z: -31.2, rotation: -Math.PI / 2 },
+  ]),
+  // West & East 2-Lane Ring Boulevard sidewalks
+  { x: -33.2, z: -14, rotation: Math.PI },
+  { x: -33.2, z: -2, rotation: Math.PI },
+  { x: -33.2, z: 10, rotation: Math.PI },
+  { x: 33.2, z: -14, rotation: 0 },
+  { x: 33.2, z: -2, rotation: 0 },
+  { x: 33.2, z: 10, rotation: 0 },
+  // Central Plaza & Sunpetal Bridge approach lanterns
+  { x: -4.6, z: 6, rotation: 0 },
+  { x: 4.6, z: 6, rotation: Math.PI },
+  { x: -4.6, z: -14, rotation: 0 },
+  { x: 4.6, z: -14, rotation: Math.PI },
+];
+
+export const STREET_LAMPS: StreetLampPlacement[] = RAW_STREET_LAMPS.map((lamp, idx) => ({
+  id: `lamp-${idx + 1}`,
+  x: lamp.x,
+  z: lamp.z,
+  rotation: lamp.rotation,
+  globeX: Number((lamp.x + 0.7 * Math.cos(lamp.rotation)).toFixed(3)),
+  globeY: 3.14,
+  globeZ: Number((lamp.z - 0.7 * Math.sin(lamp.rotation)).toFixed(3)),
+}));
+
 export const WORLD = {
   bounds: { minX: -54, maxX: 54, minZ: -54, maxZ: 54 },
   spawn: { x: 0, z: 12 },
@@ -456,6 +491,7 @@ export const WORLD = {
   buildings: BUILDINGS,
   colliders,
   roadSegments: ROAD_SEGMENTS,
+  streetLamps: STREET_LAMPS,
   citizenRoute: SIDEWALK_ROUTES[0].waypoints,
   sidewalkRoutes: SIDEWALK_ROUTES,
   shuttleRoute: OUTER_LANE_ROUTE,
@@ -470,3 +506,4 @@ export const WORLD = {
 export function getLandmark(id: string): Landmark | undefined {
   return WORLD.landmarks.find(landmark => landmark.id === id);
 }
+

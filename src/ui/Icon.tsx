@@ -1,11 +1,13 @@
 import type { ReactNode } from 'react'
 
-export type IconName = 'sun' | 'moon' | 'sound' | 'muted' | 'menu' | 'close' | 'map' | 'camera' | 'arrow' | 'leaf' | 'pause' | 'compass'
+export type IconName = 'sun' | 'moon' | 'cloud' | 'rain' | 'sound' | 'muted' | 'menu' | 'close' | 'map' | 'camera' | 'arrow' | 'leaf' | 'pause' | 'compass'
 
 export default function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
   const paths: Record<IconName, ReactNode> = {
     sun: <><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.4 1.4m11.2 11.2L19 19M5 19l1.4-1.4M17.6 6.4 19 5" /></>,
     moon: <path d="M20.2 15.1A8.6 8.6 0 0 1 8.9 3.8 8.6 8.6 0 1 0 20.2 15.1Z" />,
+    cloud: <path d="M17.5 19H9a7 7 0 1 1 6.7-9h1.8a4.5 4.5 0 1 1 0 9Z" />,
+    rain: <><path d="M17.5 15.5H9a5.5 5.5 0 1 1 5.3-7h3.2a3.5 3.5 0 1 1 0 7Z" /><path d="M8.5 18.5 7 21.5m5.5-3-1.5 3m5.5-3-1.5 3" /></>,
     sound: <><path d="m10 5-5 4H2v6h3l5 4V5Z" /><path d="M14 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14" /></>,
     muted: <><path d="m10 5-5 4H2v6h3l5 4V5Z" /><path d="m16 9 5 6m0-6-5 6" /></>,
     menu: <><path d="M4 7h16M4 12h16M4 17h16" /></>,
@@ -23,3 +25,4 @@ export default function Icon({ name, size = 20 }: { name: IconName; size?: numbe
 export function Blossom({ size = 32 }: { size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden="true"><g fill="currentColor">{[0, 72, 144, 216, 288].map(angle => <ellipse key={angle} cx="20" cy="11.2" rx="5.8" ry="9" transform={`rotate(${angle} 20 20)`} />)}</g><circle cx="20" cy="20" r="3.3" fill="#fff9ea" /></svg>
 }
+

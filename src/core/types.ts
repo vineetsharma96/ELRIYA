@@ -89,6 +89,14 @@ export interface RoadSegment {
   isBridge?: boolean;
 }
 
+export interface StreetLampPlacement extends Point2 {
+  id: string;
+  rotation: number;
+  globeX: number;
+  globeY: number;
+  globeZ: number;
+}
+
 export interface BlendKitAssetMeta {
   id: string;
   name: string;
@@ -98,6 +106,18 @@ export interface BlendKitAssetMeta {
   sourceUrl: string;
   license: 'CC0 / Free Commercial';
   description: string;
+}
+
+export type WeatherCondition = 'sunny' | 'overcast' | 'light_rain';
+
+export interface WeatherState {
+  condition: WeatherCondition;
+  /** 0 = clear sky, ~0.68 = overcast, 1.0 = rain cloud deck */
+  cloudCover: number;
+  /** 0 = dry, 1.0 = steady light rain */
+  rainIntensity: number;
+  /** True when periodically cycling automatically; false when pinned manually */
+  autoCycle: boolean;
 }
 
 export interface SimulationState {
@@ -112,7 +132,9 @@ export interface SimulationState {
   npcs: CitizenState[];
   shuttle: Point2 & { yaw: number };
   vehicles: VehicleState[];
+  weather: WeatherState;
   /** Input edge state belongs to simulation so keyboard and touch agree. */
   jumpHeld: boolean;
 }
+
 

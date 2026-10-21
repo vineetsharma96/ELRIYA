@@ -1,11 +1,22 @@
-import type { CitizenState, Collider, Point2, SimulationInput, SimulationState, VehicleKind, VehicleState } from './types';
+import type {
+  CitizenState,
+  Collider,
+  Point2,
+  SimulationInput,
+  SimulationState,
+  VehicleKind,
+  VehicleState,
+  WeatherCondition,
+  WeatherState,
+} from './types';
 import { WORLD } from './world';
 
-export type { SimulationInput, SimulationState } from './types';
+export type { SimulationInput, SimulationState, WeatherCondition, WeatherState } from './types';
 
 export const PLAYER_RADIUS = 0.42;
 export const WALK_SPEED = 4.2;
 export const SPRINT_SPEED = 7.2;
+export const WEATHER_CYCLE_SECONDS = 96;
 export const EMPTY_INPUT: SimulationInput = { moveX: 0, moveZ: 0, sprint: false, jump: false, yaw: 0 };
 const GRAVITY = 18;
 const JUMP_SPEED = 6.6;
@@ -18,6 +29,65 @@ const innerLaneRoute = WORLD.innerLaneRoute;
 const crossEastRoute = WORLD.crossEastRoute;
 const crossWestRoute = WORLD.crossWestRoute;
 const sidewalkRoutes = WORLD.sidewalkRoutes;
+
+function smoothstep01(t: number): number {
+  const x = Math.max(0, Math.min(1, t));
+  return x * x * (3 - 2 * x);
+}
+
+/**
+ * Computes the periodic weather state for a given elapsed simulation time.
+ * Cycles smoothly across a 96-second period:
+ *   [0..28s]  Sunny -> Overcast buildup
+ *   [28..52s] Overcast -> Light Rain peak
+ *   [52..76s] Light Rain -> Overcast clearing
+ *   [76..96s] Overcast -> Sunny clear skies
+ */
+export function computeScheduledWeather(elapsed: number): Omit<WeatherState, 'autoCycle'> {
+  const phase = (((elapsed % WEATHER_CYCLE_SECONDS) + WEATHER_CYCLE_SECONDS) % WEATHER_CYCLE_SECONDS) / WEATHER_CYCLE_SECONDS;
+
+  let condition: WeatherCondition = 'sunny';
+  let cloudCover = 0;
+  let rainIntensity = 0;
+
+  if (phase < 0.25) {
+    // Sunny plateau (0..0.16) then smooth transition to Overcast (0.16..0.25)
+    const t = smoothstep01((phase - 0.16) / 0.09);
+    cloudCover = t * 0.68;
+    rainIntensity = 0;
+    condition = cloudCover >= 0.35 ? 'overcast' : 'sunny';
+  } else if (phase < 0.50) {
+    // Overcast plateau (0.25..0.37) then smooth transition into Light Rain (0.37..0.50)
+    const t = smoothstep01((phase - 0.37) / 0.13);
+    cloudCover = 0.68 + t * 0.32;
+    rainIntensity = t;
+    condition = rainIntensity >= 0.35 ? 'light_rain' : 'overcast';
+  } else if (phase < 0.75) {
+    // Light Rain plateau (0.50..0.63) then easing back to Overcast (0.63..0.75)
+    const t = smoothstep01((phase - 0.63) / 0.12);
+    cloudCover = 1.0 - t * 0.32;
+    rainIntensity = 1.0 - t;
+    condition = rainIntensity >= 0.35 ? 'light_rain' : 'overcast';
+  } else {
+    // Overcast clearing back to Sunny (0.75..0.88), then Sunny (0.88..1.0)
+    const t = smoothstep01((phase - 0.75) / 0.13);
+    cloudCover = 0.68 * (1 - t);
+    rainIntensity = 0;
+    condition = cloudCover >= 0.35 ? 'overcast' : 'sunny';
+  }
+
+  return {
+    condition,
+    cloudCover: Number(cloudCover.toFixed(4)),
+    rainIntensity: Number(rainIntensity.toFixed(4)),
+  };
+}
+
+export function getWeatherTargets(condition: WeatherCondition): { cloudCover: number; rainIntensity: number } {
+  if (condition === 'light_rain') return { cloudCover: 1, rainIntensity: 1 };
+  if (condition === 'overcast') return { cloudCover: 0.68, rainIntensity: 0 };
+  return { cloudCover: 0, rainIntensity: 0 };
+}
 
 function shortestAngleDiff(from: number, to: number): number {
   return ((to - from + Math.PI) % TAU + TAU) % TAU - Math.PI;
@@ -180,6 +250,7 @@ export function createSimulation(): SimulationState {
     npcs: computePedestrians(0),
     shuttle: followLoop(shuttleRoute, 10),
     vehicles: computeVehicles(0),
+    weather: { ...computeScheduledWeather(0), autoCycle: true },
   };
 }
 
@@ -291,6 +362,21 @@ export function stepSimulation(state: SimulationState, input: SimulationInput, d
   state.elapsed += dt;
   state.time = ((state.time + dt / 60) % 24 + 24) % 24;
   state.frame++;
+
+  if (state.weather) {
+    if (state.weather.autoCycle) {
+      const scheduled = computeScheduledWeather(state.elapsed);
+      state.weather.condition = scheduled.condition;
+      state.weather.cloudCover = scheduled.cloudCover;
+      state.weather.rainIntensity = scheduled.rainIntensity;
+    } else {
+      const targets = getWeatherTargets(state.weather.condition);
+      const blend = 1 - Math.exp(-2.8 * dt);
+      state.weather.cloudCover = Number((state.weather.cloudCover + (targets.cloudCover - state.weather.cloudCover) * blend).toFixed(4));
+      state.weather.rainIntensity = Number((state.weather.rainIntensity + (targets.rainIntensity - state.weather.rainIntensity) * blend).toFixed(4));
+    }
+  }
+
   for (let i = 0; i < PEDESTRIAN_SPECS.length; i++) {
     const spec = PEDESTRIAN_SPECS[i];
     const npc = state.npcs[i];
@@ -315,3 +401,4 @@ export function stepSimulation(state: SimulationState, input: SimulationInput, d
   }
   updateDiscovery(state);
 }
+

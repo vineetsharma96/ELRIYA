@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { dampTimeOfDay, EnvironmentLightingController, shortestHourDelta } from '../../scene/lighting'
+import { computeStreetLampSchedule, dampTimeOfDay, EnvironmentLightingController, shortestHourDelta } from '../../scene/lighting'
+import { selectNearestStreetLamps } from '../../scene/StreetLights'
+import { WORLD } from '../world'
 
 describe('smooth environment lighting and celestial transitions', () => {
   it('computes shortest circular hour delta across midnight wrap-around', () => {
@@ -55,4 +57,73 @@ describe('smooth environment lighting and celestial transitions', () => {
     )
     expect(colorStep).toBeLessThan(0.05)
   })
+
+  it('dynamically updates global environment lighting across sunny, overcast, and light_rain weather conditions', () => {
+    const controller = new EnvironmentLightingController(12)
+    const sunnyState = controller.update(12, 1, true, { condition: 'sunny', cloudCover: 0, rainIntensity: 0 })
+    const sunnySunIntensity = sunnyState.sunIntensity
+    const sunnyFogFar = sunnyState.fogFar
+    const sunnyEmissive = sunnyState.emissiveIntensity
+    const sunnySkyB = sunnyState.skyColor.b
+
+    // Transition to overcast
+    const overcastState = controller.update(12, 1, true, { condition: 'overcast', cloudCover: 0.68, rainIntensity: 0 })
+    const overcastSunIntensity = overcastState.sunIntensity
+    const overcastFogFar = overcastState.fogFar
+    const overcastEmissive = overcastState.emissiveIntensity
+    expect(overcastState.weatherCondition).toBe('overcast')
+    expect(overcastSunIntensity).toBeLessThan(sunnySunIntensity * 0.72)
+    expect(overcastFogFar).toBeLessThan(sunnyFogFar)
+    expect(overcastEmissive).toBeGreaterThan(sunnyEmissive)
+
+    // Transition to light rain
+    const rainState = controller.update(12, 1, true, { condition: 'light_rain', cloudCover: 1, rainIntensity: 1 })
+    expect(rainState.weatherCondition).toBe('light_rain')
+    expect(rainState.sunIntensity).toBeLessThan(overcastSunIntensity)
+    expect(rainState.fogFar).toBeLessThan(overcastFogFar)
+    expect(rainState.fogNear).toBeLessThan(65)
+    expect(rainState.emissiveIntensity).toBeGreaterThan(overcastEmissive)
+    expect(rainState.sunScale).toBeLessThan(0.4)
+    expect(rainState.skyColor.b).not.toBeCloseTo(sunnySkyB, 2)
+  })
+
+  it('automatically activates street lights at night and turns them off at sunrise', () => {
+    // Daytime (10:00) -> completely off
+    expect(computeStreetLampSchedule(10).active).toBe(false)
+    expect(computeStreetLampSchedule(10).intensity).toBe(0)
+
+    // Dusk ramp (18:00) -> partially active
+    const dusk = computeStreetLampSchedule(18)
+    expect(dusk.active).toBe(true)
+    expect(dusk.intensity).toBeCloseTo(0.5, 2)
+
+    // Night (22:30 and 02:00) -> full warm glow
+    expect(computeStreetLampSchedule(22.5).active).toBe(true)
+    expect(computeStreetLampSchedule(22.5).intensity).toBe(1)
+    expect(computeStreetLampSchedule(2).intensity).toBe(1)
+
+    // Sunrise cutoff (06:00 ramping down -> 06:35 off)
+    expect(computeStreetLampSchedule(6.0).intensity).toBeCloseTo(0.5, 2)
+    expect(computeStreetLampSchedule(6.6).active).toBe(false)
+    expect(computeStreetLampSchedule(6.6).intensity).toBe(0)
+
+    // Verify controller state integration and nearest street lamp selection
+    const controller = new EnvironmentLightingController(21.5)
+    expect(controller.state.streetLampActive).toBe(true)
+    expect(controller.state.streetLampIntensity).toBe(1)
+
+    controller.update(7.5, 1, true)
+    expect(controller.state.streetLampActive).toBe(false)
+    expect(controller.state.streetLampIntensity).toBe(0)
+
+    expect(WORLD.streetLamps.length).toBeGreaterThanOrEqual(40)
+    const nearest = selectNearestStreetLamps(WORLD.streetLamps, { x: 0, z: 12 }, 8)
+    expect(nearest).toHaveLength(8)
+    expect(Math.hypot(nearest[0].globeX - 0, nearest[0].globeZ - 12)).toBeLessThanOrEqual(
+      Math.hypot(nearest[7].globeX - 0, nearest[7].globeZ - 12)
+    )
+  })
 })
+
+
+

@@ -4,9 +4,10 @@ import * as THREE from 'three'
 import { Asset, Citizens } from './Assets'
 import { TrafficFleet } from './BlendKitAssets'
 import { Terrain, createCanalMaterial } from './Terrain'
-import { Petals } from './Petals'
+import { Petals, RainDrops } from './Petals'
+import { StreetLightingSystem } from './StreetLights'
 import { Ambience } from './audio'
-import { createSimulation, stepSimulation } from '../core/simulation'
+import { computeScheduledWeather, createSimulation, stepSimulation } from '../core/simulation'
 import { createInput, type InputController } from '../core/input'
 import { createQualityState, getQualitySettings, resetQualitySampling, setQualityMode, updateAdaptiveQuality, type QualitySettings } from '../core/quality'
 import { WORLD, getLandmark, CAMERA_OBSTACLES_3D } from '../core/world'
@@ -134,6 +135,16 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
         snapshot.current.time = normalized
       },
       setWind: value => { wind.value = THREE.MathUtils.clamp(value, 0, 2) },
+      setWeather: mode => {
+        if (mode === 'auto') {
+          const scheduled = computeScheduledWeather(simulation.elapsed)
+          simulation.weather.autoCycle = true
+          simulation.weather.condition = scheduled.condition
+        } else {
+          simulation.weather.autoCycle = false
+          simulation.weather.condition = mode
+        }
+      },
       resetPlayer: () => {
         const fresh = createSimulation()
         Object.assign(simulation.player, fresh.player)
@@ -205,7 +216,7 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
     shuttle.current.position.set(simulation.shuttle.x, 0, simulation.shuttle.z)
     shuttle.current.rotation.y = simulation.shuttle.yaw
 
-    const env = lightingController.update(simulation.time, delta)
+    const env = lightingController.update(simulation.time, delta, false, simulation.weather)
     sun.current.position.copy(env.keyLightPosition)
     sun.current.intensity = env.sunIntensity
     sun.current.color.copy(env.sunColor)
@@ -216,7 +227,11 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
     nightUniforms.current.forEach(uniform => { uniform.value = env.emissiveIntensity })
     movement.sky.copy(env.skyColor)
     scene.background = movement.sky
-    if (scene.fog instanceof THREE.Fog) { scene.fog.color.copy(movement.sky); scene.fog.far = env.fogFar }
+    if (scene.fog instanceof THREE.Fog) {
+      scene.fog.color.copy(movement.sky)
+      scene.fog.near = env.fogNear
+      scene.fog.far = env.fogFar
+    }
     sunDisc.current.position.copy(env.sunDiscPosition)
     sunDisc.current.scale.setScalar(Math.max(0.001, env.sunScale))
     sunDisc.current.visible = env.sunScale > 0.01
@@ -224,7 +239,7 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
     moonDisc.current.scale.setScalar(Math.max(0.001, env.moonScale))
     moonDisc.current.visible = env.moonScale > 0.01
     water.uniforms.uTime.value = simulation.elapsed
-    water.uniforms.uDay.value = env.daylight
+    water.uniforms.uDay.value = env.daylight * (1 - env.cloudCover * 0.25)
 
     const follow = cameraMode === 'follow'
     const target = movement.target
@@ -277,7 +292,7 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
         forwardY: movement.direction.y,
         forwardZ: movement.direction.z,
       },
-      env.daylight,
+      env.daylight * (1 - env.rainIntensity * 0.65),
       wind.value,
       delta
     )
@@ -308,6 +323,12 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
         npcCount: activeNpcCount, petalCount: settings.petalCount,
         activeQuality: quality.tier, renderScale: gl.getPixelRatio(), wind: wind.value,
         backend: 'WebGL2', lighting: 'Hemisphere ambient + sun',
+        weather: env.weatherCondition,
+        cloudCover: env.cloudCover,
+        rainIntensity: env.rainIntensity,
+        weatherAuto: simulation.weather.autoCycle,
+        streetLightsOn: env.streetLampActive,
+        streetLightIntensity: env.streetLampIntensity,
         bistroPrompt: encounter.promptText,
         bistroCanCancel: encounter.cupState === 'carried',
         bistroUnlocked: bistroEncounter.isUnlocked(),
@@ -333,6 +354,7 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
     <mesh ref={sunDisc}><sphereGeometry args={[5, 16, 12]} /><meshBasicMaterial color="#fff0c5" fog={false} /></mesh>
     <mesh ref={moonDisc}><sphereGeometry args={[3.6, 16, 12]} /><meshBasicMaterial color="#e6e9ec" fog={false} /></mesh>
     <Terrain vegetationDensity={settings.vegetationDensity} lowDetail={quality.tier === 'LOW' || quality.tier === 'LITE'} wind={wind} bistroInteriorRef={bistroInteriorRef} />
+    <StreetLightingSystem lightingState={lightingController.state} playerPosition={simulation.player} lite={quality.tier === 'LOW' || quality.tier === 'LITE'} />
     {[
       { x: -18.85, w: 29.7 },
       { x: 18.85, w: 29.7 },
@@ -346,5 +368,8 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
     <group ref={cupRef}><Asset name="bistroCup" lite={quality.tier === 'LOW' || quality.tier === 'LITE'} /></group>
     <Citizens simulation={simulation} count={renderedNpcCount} lite={quality.tier === 'LOW' || quality.tier === 'LITE'} />
     <Petals count={settings.petalCount} simulation={simulation} wind={wind} />
+    <RainDrops count={Math.max(220, Math.round(settings.petalCount * 0.75))} simulation={simulation} wind={wind} />
   </>
 }
+
+

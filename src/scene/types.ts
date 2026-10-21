@@ -1,6 +1,7 @@
 import type { QualityMode } from '../core/quality'
 import type { RefObject } from 'react'
 import type { BistroActionResult } from '../core/bistroEncounter'
+import type { WeatherCondition } from '../core/types'
 
 export type CameraMode = 'follow' | 'vista'
 export interface WorldSnapshot {
@@ -21,6 +22,12 @@ export interface WorldSnapshot {
   wind: number
   backend: string
   lighting: string
+  weather: WeatherCondition
+  cloudCover: number
+  rainIntensity: number
+  weatherAuto: boolean
+  streetLightsOn?: boolean
+  streetLightIntensity?: number
   bistroPrompt?: string | null
   bistroCanCancel?: boolean
   bistroUnlocked?: boolean
@@ -30,6 +37,7 @@ export interface WorldSnapshot {
 export interface WorldApi {
   setTime(hours: number): void
   setWind(strength: number): void
+  setWeather(mode: WeatherCondition | 'auto'): void
   resetPlayer(): void
   interact(): string | null
   interactBistro(): BistroActionResult
@@ -50,4 +58,6 @@ export const INITIAL_SNAPSHOT: WorldSnapshot = {
   player: { x: 0, y: 0, z: 12 }, time: 9.5, nearLandmark: null, discovered: [],
   npcCount: 0, petalCount: 0, activeQuality: 'HIGH', renderScale: 1.5,
   wind: 0.6, backend: 'WebGL2', lighting: 'Hemisphere ambient + sun',
+  weather: 'sunny', cloudCover: 0, rainIntensity: 0, weatherAuto: true,
 }
+
