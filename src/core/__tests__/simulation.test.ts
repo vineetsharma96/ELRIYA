@@ -109,8 +109,8 @@ describe('world simulation', () => {
     expect(state.time).toBeGreaterThan(0);
     expect(state.time).toBeLessThan(1);
     expect(state.nearLandmark).toBe('blossom-plaza');
-    expect(state.discovered.filter(id => id === 'blossom-plaza')).toHaveLength(1);
-    state.discovered.forEach(id => expect(WORLD.landmarks.some(landmark => landmark.id === id)).toBe(true));
+    expect(Array.from(state.discovered).filter(id => id === 'blossom-plaza')).toHaveLength(1);
+    Array.from(state.discovered).forEach(id => expect(WORLD.landmarks.some(landmark => landmark.id === id)).toBe(true));
   });
 
   it('replays deterministically, including citizens and shuttle', () => {

@@ -14,7 +14,7 @@ export interface WorldSnapshot {
   player: { x: number; y: number; z: number }
   time: number
   nearLandmark: string | null
-  discovered: string[]
+  discovered: Set<string>
   npcCount: number
   petalCount: number
   activeQuality: string
@@ -55,7 +55,7 @@ export interface WorldCanvasProps {
 }
 export const INITIAL_SNAPSHOT: WorldSnapshot = {
   ready: false, fps: 0, frameMs: 0, p95Ms: 0, drawCalls: 0, triangles: 0,
-  player: { x: 0, y: 0, z: 12 }, time: 9.5, nearLandmark: null, discovered: [],
+  player: { x: 0, y: 0, z: 12 }, time: 9.5, nearLandmark: null, discovered: new Set(),
   npcCount: 0, petalCount: 0, activeQuality: 'HIGH', renderScale: 1.5,
   wind: 0.6, backend: 'WebGL2', lighting: 'Hemisphere ambient + sun',
   weather: 'sunny', cloudCover: 0, rainIntensity: 0, weatherAuto: true,

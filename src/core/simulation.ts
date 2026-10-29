@@ -245,7 +245,7 @@ export function createSimulation(): SimulationState {
   return {
     player: { ...WORLD.spawn, y: 0, yaw: Math.PI, speed: 0, velocityX: 0, velocityZ: 0, verticalVelocity: 0, grounded: true },
     companion: { x: WORLD.spawn.x + 1.4, z: WORLD.spawn.z + 1.4, yaw: Math.PI },
-    time: 9.5, paused: false, discovered: [], nearLandmark: null,
+    time: 9.5, paused: false, discovered: new Set(), nearLandmark: null,
     frame: 0, elapsed: 0, jumpHeld: false,
     npcs: computePedestrians(0),
     shuttle: followLoop(shuttleRoute, 10),
@@ -298,7 +298,7 @@ function updateDiscovery(state: SimulationState) {
   for (const landmark of WORLD.landmarks) {
     const distance = Math.hypot(state.player.x - landmark.x, state.player.z - landmark.z);
     if (distance <= landmark.radius) {
-      if (!state.discovered.includes(landmark.id)) state.discovered.push(landmark.id);
+      state.discovered.add(landmark.id);
       if (distance < nearestDistance) { nearest = landmark.id; nearestDistance = distance; }
     }
   }
