@@ -125,7 +125,7 @@ export interface SimulationState {
   companion: Point2 & { yaw: number };
   time: number;
   paused: boolean;
-  discovered: string[];
+  discovered: Set<string>;
   nearLandmark: string | null;
   frame: number;
   elapsed: number;

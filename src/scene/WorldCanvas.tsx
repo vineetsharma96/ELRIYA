@@ -319,7 +319,7 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
         p95Ms: sorted[Math.floor(sorted.length * 0.95)] ?? 0,
         drawCalls: gl.info.render.calls, triangles: gl.info.render.triangles,
         player: { x: p.x, y: p.y, z: p.z }, time: simulation.time,
-        nearLandmark: simulation.nearLandmark, discovered: [...simulation.discovered],
+        nearLandmark: simulation.nearLandmark, discovered: new Set(simulation.discovered),
         npcCount: activeNpcCount, petalCount: settings.petalCount,
         activeQuality: quality.tier, renderScale: gl.getPixelRatio(), wind: wind.value,
         backend: 'WebGL2', lighting: 'Hemisphere ambient + sun',

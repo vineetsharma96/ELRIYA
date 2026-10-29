@@ -117,7 +117,7 @@ export default function WorldMap({ snapshot, expanded = false }: { snapshot: Wor
 
       {/* Landmarks */}
       {landmarks.map(place => {
-        const found = snapshot.discovered.includes(place.id)
+        const found = snapshot.discovered.has(place.id)
         const textY = place.kind === 'water' || place.kind === 'home' ? place.z - 5.2 : place.z + 5.6
         return (
           <g key={place.id}>
