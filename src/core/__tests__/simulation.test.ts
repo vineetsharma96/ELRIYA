@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createSimulation, EMPTY_INPUT, followLoop, PLAYER_RADIUS, SPRINT_SPEED, stepSimulation, WALK_SPEED } from '../simulation';
+import { computeScheduledWeather, createSimulation, EMPTY_INPUT, followLoop, PLAYER_RADIUS, SPRINT_SPEED, stepSimulation, WALK_SPEED } from '../simulation';
 import type { SimulationInput, SimulationState } from '../types';
 import { SEED, seededRandom, WORLD } from '../world';
 import { buildDetailedTreeSpec } from '../../scene/Assets';
@@ -88,6 +88,80 @@ describe('player controller', () => {
     advance(state, 1 / 60);
     advance(state, 1 / 60, { jump: true });
     expect(state.player.y).toBeGreaterThan(0);
+  });
+});
+
+describe('computeScheduledWeather', () => {
+  it('handles the Sunny -> Overcast buildup phase [0..28s]', () => {
+    // Start of phase (Sunny)
+    let weather = computeScheduledWeather(0);
+    expect(weather.condition).toBe('sunny');
+    expect(weather.cloudCover).toBe(0);
+
+    // Middle of buildup (Transition)
+    weather = computeScheduledWeather(20);
+    expect(weather.cloudCover).toBeGreaterThan(0);
+    expect(weather.rainIntensity).toBe(0);
+
+    // End of phase (Overcast)
+    weather = computeScheduledWeather(28);
+    expect(weather.condition).toBe('overcast');
+  });
+
+  it('handles the Overcast -> Light Rain peak phase [28..52s]', () => {
+    // Start of phase
+    let weather = computeScheduledWeather(28);
+    expect(weather.condition).toBe('overcast');
+
+    // Mid phase transition
+    weather = computeScheduledWeather(40);
+    expect(weather.rainIntensity).toBeGreaterThan(0);
+
+    // End of phase (Light Rain)
+    weather = computeScheduledWeather(52);
+    expect(weather.condition).toBe('light_rain');
+  });
+
+  it('handles the Light Rain -> Overcast clearing phase [52..76s]', () => {
+    // Start of phase
+    let weather = computeScheduledWeather(52);
+    expect(weather.condition).toBe('light_rain');
+
+    // Transition clearing
+    weather = computeScheduledWeather(68);
+    expect(weather.condition).toBe('overcast');
+    expect(weather.rainIntensity).toBeLessThan(1);
+
+    // End of phase
+    weather = computeScheduledWeather(76);
+    expect(weather.condition).toBe('overcast');
+  });
+
+  it('handles the Overcast -> Sunny clear skies phase [76..96s]', () => {
+    // Start of phase
+    let weather = computeScheduledWeather(76);
+    expect(weather.condition).toBe('overcast');
+
+    // Transition to sunny
+    weather = computeScheduledWeather(86);
+    expect(weather.condition).toBe('sunny');
+    expect(weather.cloudCover).toBeLessThan(0.35);
+
+    // End of phase
+    weather = computeScheduledWeather(96);
+    expect(weather.condition).toBe('sunny');
+    expect(weather.cloudCover).toBe(0);
+  });
+
+  it('wraps elapsed time correctly around the 96s cycle', () => {
+    const cycle1 = computeScheduledWeather(10);
+    const cycle2 = computeScheduledWeather(10 + 96);
+    const cycle3 = computeScheduledWeather(10 + 96 * 10);
+    const cycleNegative = computeScheduledWeather(-86);
+
+    expect(cycle2).toEqual(cycle1);
+    expect(cycle3).toEqual(cycle1);
+    expect(cycleNegative).toEqual(cycle1);
   });
 });
 
