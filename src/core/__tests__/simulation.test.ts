@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createSimulation, EMPTY_INPUT, followLoop, PLAYER_RADIUS, SPRINT_SPEED, stepSimulation, WALK_SPEED } from '../simulation';
+import { createSimulation, EMPTY_INPUT, followLoop, getWeatherTargets, PLAYER_RADIUS, SPRINT_SPEED, stepSimulation, WALK_SPEED } from '../simulation';
 import type { SimulationInput, SimulationState } from '../types';
 import { SEED, seededRandom, WORLD } from '../world';
 import { buildDetailedTreeSpec } from '../../scene/Assets';
@@ -228,6 +228,13 @@ describe('world simulation', () => {
   });
 });
 
+describe('getWeatherTargets', () => {
+  it('returns the correct cloud cover and rain intensity for given weather conditions', () => {
+    expect(getWeatherTargets('light_rain')).toEqual({ cloudCover: 1, rainIntensity: 1 });
+    expect(getWeatherTargets('overcast')).toEqual({ cloudCover: 0.68, rainIntensity: 0 });
+    expect(getWeatherTargets('sunny')).toEqual({ cloudCover: 0, rainIntensity: 0 });
+  });
+});
 
 
 
