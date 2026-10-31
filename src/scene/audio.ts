@@ -26,45 +26,121 @@ export function computeBlossomClusters(
   neighborhoodRadius = 9.5,
   minTrees = 3
 ): BlossomTreeCluster[] {
-  const assigned = new Set<number>()
+  const assigned = new Uint8Array(trees.length)
   const clusters: BlossomTreeCluster[] = []
 
-  // Sort candidate seeds by local neighbor count (densest groves first)
-  const neighborCounts = trees.map((t, idx) => {
-    let count = 0
-    for (let j = 0; j < trees.length; j++) {
-      if (Math.hypot(t.x - trees[j].x, t.z - trees[j].z) <= neighborhoodRadius) count++
+  const cellSize = neighborhoodRadius
+  const grid = new Map<string, number[]>()
+
+  const getCellKey = (x: number, z: number) => {
+    return `${Math.floor(x / cellSize)},${Math.floor(z / cellSize)}`
+  }
+
+  for (let i = 0; i < trees.length; i++) {
+    const key = getCellKey(trees[i].x, trees[i].z)
+    if (!grid.has(key)) {
+      grid.set(key, [])
     }
-    return { idx, count }
-  })
+    grid.get(key)!.push(i)
+  }
+
+  const counts = new Uint16Array(trees.length)
+  for (let i = 0; i < trees.length; i++) {
+    const ti = trees[i]
+    counts[i]++ // self
+
+    const cx = Math.floor(ti.x / cellSize)
+    const cz = Math.floor(ti.z / cellSize)
+
+    for (let ox = -1; ox <= 1; ox++) {
+      for (let oz = -1; oz <= 1; oz++) {
+        const key = `${cx + ox},${cz + oz}`
+        const cell = grid.get(key)
+        if (cell) {
+          for (let k = 0; k < cell.length; k++) {
+            const j = cell[k]
+            if (j > i) {
+              const tj = trees[j]
+              const dx = ti.x - tj.x
+              if (Math.abs(dx) > neighborhoodRadius) continue
+              const dz = ti.z - tj.z
+              if (Math.abs(dz) > neighborhoodRadius) continue
+
+              if (Math.hypot(dx, dz) <= neighborhoodRadius) {
+                counts[i]++
+                counts[j]++
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Sort candidate seeds by local neighbor count (densest groves first)
+  const neighborCounts = Array.from(counts, (count, idx) => ({ idx, count }))
   neighborCounts.sort((a, b) => b.count - a.count)
 
   for (const { idx } of neighborCounts) {
-    if (assigned.has(idx)) continue
+    if (assigned[idx]) continue
     const seed = trees[idx]
-    const members: (Point2 & { scale: number })[] = []
-    for (let j = 0; j < trees.length; j++) {
-      if (assigned.has(j)) continue
-      if (Math.hypot(seed.x - trees[j].x, seed.z - trees[j].z) <= neighborhoodRadius) {
-        members.push(trees[j])
+
+    const cx = Math.floor(seed.x / cellSize)
+    const cz = Math.floor(seed.z / cellSize)
+
+    const candidateIndices: number[] = []
+    for (let ox = -1; ox <= 1; ox++) {
+      for (let oz = -1; oz <= 1; oz++) {
+        const key = `${cx + ox},${cz + oz}`
+        const cell = grid.get(key)
+        if (cell) {
+          for (let k = 0; k < cell.length; k++) {
+            candidateIndices.push(cell[k])
+          }
+        }
       }
     }
-    if (members.length < minTrees) continue
-    for (let j = 0; j < trees.length; j++) {
-      if (Math.hypot(seed.x - trees[j].x, seed.z - trees[j].z) <= neighborhoodRadius) {
-        assigned.add(j)
+    // Sorting maintains the original array processing order for exact reproducibility
+    candidateIndices.sort((a, b) => a - b)
+
+    const members: (Point2 & { scale: number })[] = []
+    for (let k = 0; k < candidateIndices.length; k++) {
+      const j = candidateIndices[k]
+      if (assigned[j]) continue
+      const tj = trees[j]
+      const dx = seed.x - tj.x
+      if (Math.abs(dx) > neighborhoodRadius) continue
+      const dz = seed.z - tj.z
+      if (Math.abs(dz) > neighborhoodRadius) continue
+
+      if (Math.hypot(dx, dz) <= neighborhoodRadius) {
+        members.push(tj)
       }
     }
 
-    const cx = members.reduce((sum, m) => sum + m.x, 0) / members.length
-    const cz = members.reduce((sum, m) => sum + m.z, 0) / members.length
-    const maxSpread = members.reduce((max, m) => Math.max(max, Math.hypot(m.x - cx, m.z - cz)), 4)
+    if (members.length < minTrees) continue
+
+    for (let k = 0; k < candidateIndices.length; k++) {
+      const j = candidateIndices[k]
+      const tj = trees[j]
+      const dx = seed.x - tj.x
+      if (Math.abs(dx) > neighborhoodRadius) continue
+      const dz = seed.z - tj.z
+      if (Math.abs(dz) > neighborhoodRadius) continue
+      if (Math.hypot(dx, dz) <= neighborhoodRadius) {
+        assigned[j] = 1
+      }
+    }
+
+    const cxMean = members.reduce((sum, m) => sum + m.x, 0) / members.length
+    const czMean = members.reduce((sum, m) => sum + m.z, 0) / members.length
+    const maxSpread = members.reduce((max, m) => Math.max(max, Math.hypot(m.x - cxMean, m.z - czMean)), 4)
 
     clusters.push({
       id: `blossom-grove-${clusters.length + 1}`,
-      x: Number(cx.toFixed(2)),
+      x: Number(cxMean.toFixed(2)),
       y: 3.6,
-      z: Number(cz.toFixed(2)),
+      z: Number(czMean.toFixed(2)),
       radius: Number(Math.max(12, maxSpread + 8).toFixed(2)),
       treeCount: members.length,
       trees: members,
