@@ -256,6 +256,34 @@ export function createSimulation(): SimulationState {
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
+const CELL_SIZE = 10;
+const GRID_MIN_X = Math.floor(WORLD.bounds.minX / CELL_SIZE) - 1;
+const GRID_MIN_Z = Math.floor(WORLD.bounds.minZ / CELL_SIZE) - 1;
+const GRID_MAX_X = Math.ceil(WORLD.bounds.maxX / CELL_SIZE) + 1;
+const GRID_MAX_Z = Math.ceil(WORLD.bounds.maxZ / CELL_SIZE) + 1;
+const GRID_COLS = GRID_MAX_X - GRID_MIN_X + 1;
+const GRID_ROWS = GRID_MAX_Z - GRID_MIN_Z + 1;
+
+const COLLIDER_GRID: Collider[][] = new Array(GRID_COLS * GRID_ROWS).fill(null).map(() => []);
+
+function getCellIndex(cx: number, cz: number): number {
+  return (cz - GRID_MIN_Z) * GRID_COLS + (cx - GRID_MIN_X);
+}
+
+for (const box of WORLD.colliders) {
+  const minCx = Math.floor((box.x - box.halfX - 2) / CELL_SIZE);
+  const maxCx = Math.floor((box.x + box.halfX + 2) / CELL_SIZE);
+  const minCz = Math.floor((box.z - box.halfZ - 2) / CELL_SIZE);
+  const maxCz = Math.floor((box.z + box.halfZ + 2) / CELL_SIZE);
+  for (let cz = minCz; cz <= maxCz; cz++) {
+    for (let cx = minCx; cx <= maxCx; cx++) {
+      if (cx >= GRID_MIN_X && cx <= GRID_MAX_X && cz >= GRID_MIN_Z && cz <= GRID_MAX_Z) {
+        COLLIDER_GRID[getCellIndex(cx, cz)].push(box);
+      }
+    }
+  }
+}
+
 /** Resolve actual circle/AABB overlap, preserving tangential movement at walls. */
 function pushOut(position: Point2, radius: number, box: Collider) {
   const localX = position.x - box.x;
@@ -281,7 +309,14 @@ function pushOut(position: Point2, radius: number, box: Collider) {
 }
 
 function constrain(position: Point2, radius: number) {
-  WORLD.colliders.forEach(box => pushOut(position, radius, box));
+  const cx = Math.floor(position.x / CELL_SIZE);
+  const cz = Math.floor(position.z / CELL_SIZE);
+  if (cx >= GRID_MIN_X && cx <= GRID_MAX_X && cz >= GRID_MIN_Z && cz <= GRID_MAX_Z) {
+    const cell = COLLIDER_GRID[getCellIndex(cx, cz)];
+    for (let i = 0; i < cell.length; i++) pushOut(position, radius, cell[i]);
+  } else {
+    for (let i = 0; i < WORLD.colliders.length; i++) pushOut(position, radius, WORLD.colliders[i]);
+  }
   const b = WORLD.bounds;
   position.x = clamp(position.x, b.minX + radius, b.maxX - radius);
   position.z = clamp(position.z, b.minZ + radius, b.maxZ - radius);
