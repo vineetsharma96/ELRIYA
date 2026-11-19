@@ -114,7 +114,7 @@ export function StreetLightingSystem({
       blending: THREE.AdditiveBlending,
     })
 
-    // 3. Warm lantern bulb halo around each street lamp globe
+    // 3. Warm HDR lantern bulb halo around each street lamp globe (feeds UnrealBloom cleanly at dusk/night)
     const haloGeo = new THREE.SphereGeometry(0.46, 14, 10)
     const haloMat = new THREE.ShaderMaterial({
       uniforms,
@@ -130,29 +130,39 @@ export function StreetLightingSystem({
         uniform float uIntensity;
         void main() {
           if (uIntensity <= 0.005) discard;
-          float glow = 0.42 * uIntensity;
-          gl_FragColor = vec4(1.0, 0.82, 0.48, glow);
+          float core = pow(clamp(abs(vNormal.z), 0.0, 1.0), 1.4);
+          vec3 hdrGold = mix(vec3(1.55, 0.98, 0.46), vec3(2.45, 1.88, 1.05), core);
+          float glow = (0.34 + 0.32 * core) * uIntensity;
+          gl_FragColor = vec4(hdrGold, glow);
         }
       `,
       transparent: true,
       depthWrite: false,
+      toneMapped: false,
       blending: THREE.AdditiveBlending,
     })
 
     return { groundGeo, groundMat, coneGeo, coneMat, haloGeo, haloMat, uniforms }
   }, [])
 
-  useEffect(
-    () => () => {
-      groundGeo.dispose()
-      groundMat.dispose()
-      coneGeo.dispose()
-      coneMat.dispose()
-      haloGeo.dispose()
-      haloMat.dispose()
-    },
-    [groundGeo, groundMat, coneGeo, coneMat, haloGeo, haloMat]
-  )
+  const activeMatsRef = useRef<THREE.ShaderMaterial | null>(null)
+  useEffect(() => {
+    activeMatsRef.current = haloMat
+    return () => {
+      activeMatsRef.current = null
+      const oldHalo = haloMat
+      queueMicrotask(() => {
+        if (activeMatsRef.current !== oldHalo) {
+          groundGeo.dispose()
+          groundMat.dispose()
+          coneGeo.dispose()
+          coneMat.dispose()
+          haloGeo.dispose()
+          haloMat.dispose()
+        }
+      })
+    }
+  }, [groundGeo, groundMat, coneGeo, coneMat, haloGeo, haloMat])
 
   useLayoutEffect(() => {
     const dummy = new THREE.Object3D()

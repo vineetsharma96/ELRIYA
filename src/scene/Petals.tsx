@@ -32,7 +32,14 @@ export function generateTreeCanopySpawns(count: number, seed = 792): TreeLeafSpa
     const spawnX = tree.x + Math.cos(angle) * localRadius
     const spawnZ = tree.z + Math.sin(angle) * localRadius
     const roll = random()
-    const kind = roll < 0.48 ? 'sakura_petal' : roll < 0.74 ? 'blush_petal' : 'cherry_leaf'
+    const kind =
+      tree.species === 'green'
+        ? 'cherry_leaf'
+        : roll < 0.54
+          ? 'sakura_petal'
+          : roll < 0.84
+            ? 'blush_petal'
+            : 'cherry_leaf'
     spawns.push({
       treeIndex,
       spawnX,
@@ -224,7 +231,22 @@ export function Petals({ count, simulation, wind }: { count: number; simulation:
     return { geometry, material }
   }, [instanceCount])
 
-  useEffect(() => () => { geometry.dispose(); material.dispose() }, [geometry, material])
+  const activePetalGeoRef = useRef<THREE.InstancedBufferGeometry | null>(null)
+  const activePetalMatRef = useRef<THREE.ShaderMaterial | null>(null)
+  useEffect(() => {
+    activePetalGeoRef.current = geometry
+    activePetalMatRef.current = material
+    return () => {
+      activePetalGeoRef.current = null
+      activePetalMatRef.current = null
+      const oldGeo = geometry
+      const oldMat = material
+      queueMicrotask(() => {
+        if (activePetalGeoRef.current !== oldGeo) oldGeo.dispose()
+        if (activePetalMatRef.current !== oldMat) oldMat.dispose()
+      })
+    }
+  }, [geometry, material])
   useFrame(() => {
     material.uniforms.uTime.value = simulation.elapsed
     material.uniforms.uWind.value = wind.value
@@ -293,7 +315,22 @@ export function RainDrops({ count = 650, simulation, wind }: { count?: number; s
     return { geometry, material }
   }, [count])
 
-  useEffect(() => () => { geometry.dispose(); material.dispose() }, [geometry, material])
+  const activeRainGeoRef = useRef<THREE.InstancedBufferGeometry | null>(null)
+  const activeRainMatRef = useRef<THREE.ShaderMaterial | null>(null)
+  useEffect(() => {
+    activeRainGeoRef.current = geometry
+    activeRainMatRef.current = material
+    return () => {
+      activeRainGeoRef.current = null
+      activeRainMatRef.current = null
+      const oldGeo = geometry
+      const oldMat = material
+      queueMicrotask(() => {
+        if (activeRainGeoRef.current !== oldGeo) oldGeo.dispose()
+        if (activeRainMatRef.current !== oldMat) oldMat.dispose()
+      })
+    }
+  }, [geometry, material])
 
   useFrame(() => {
     const rain = simulation.weather?.rainIntensity ?? 0

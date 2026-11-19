@@ -1,7 +1,9 @@
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import { Asset, DetailedTreeCanopy, InstancedAsset, type WindField } from './Assets'
+import { Asset, InstancedAsset, type WindField } from './Assets'
 import { BlendKitBuilding } from './BlendKitAssets'
+import { CityTreeGrove } from './CityTreeGrove'
+import type { EnvironmentLightingSnapshot } from './lighting'
 import { WORLD } from '../core/world'
 
 type BoxPlacement = { position: [number, number, number]; size: [number, number, number]; color: string }
@@ -207,11 +209,13 @@ export function Terrain({
   vegetationDensity,
   lowDetail,
   wind,
+  lightingState,
   bistroInteriorRef,
 }: {
   vegetationDensity: number;
   lowDetail: boolean;
   wind: WindField;
+  lightingState: EnvironmentLightingSnapshot;
   bistroInteriorRef?: React.Ref<THREE.Group>;
 }) {
   // High-density trees (up to 112 trees sorted by proximity to spawn)
@@ -338,9 +342,8 @@ export function Terrain({
         <BlendKitBuilding key={b.id} building={b} lite={lowDetail} />
       ))}
 
-      {/* Instanced Vegetation & Street Furniture */}
-      <InstancedAsset name={lowDetail ? 'treeLow' : 'tree'} placements={trees} wind={wind} lite={lowDetail} />
-      <DetailedTreeCanopy placements={trees} wind={wind} lite={lowDetail} />
+      {/* Unique Procedural Sakura & Botanical Green Trees replacing all old city trees */}
+      <CityTreeGrove trees={trees} wind={wind} lightingState={lightingState} lowDetail={lowDetail} />
       <InstancedAsset name={lowDetail ? 'flowersLow' : 'flowers'} placements={flowers} lite={lowDetail} />
       <InstancedAsset name="lamp" placements={lamps} lite={lowDetail} />
       <InstancedAsset name="bench" placements={benches} lite={lowDetail} />

@@ -97,6 +97,17 @@ export interface StreetLampPlacement extends Point2 {
   globeZ: number;
 }
 
+export type TreeSpecies = 'sakura' | 'green';
+
+export interface TreePlacement extends Point2 {
+  scale: number;
+  species: TreeSpecies;
+  /** Unique deterministic seed driving this individual tree's branch map */
+  seed: number;
+  /** Unique yaw rotation (radians) */
+  rotation: number;
+}
+
 export interface BlendKitAssetMeta {
   id: string;
   name: string;

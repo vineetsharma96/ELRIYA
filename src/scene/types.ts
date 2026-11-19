@@ -20,6 +20,8 @@ export interface WorldSnapshot {
   activeQuality: string
   renderScale: number
   wind: number
+  sakuraFallDensity: number
+  bloomIntensity: number
   backend: string
   lighting: string
   weather: WeatherCondition
@@ -38,6 +40,8 @@ export interface WorldSnapshot {
 export interface WorldApi {
   setTime(hours: number): void
   setWind(strength: number): void
+  setSakuraFallDensity(density: number): void
+  setBloomIntensity(intensity: number): void
   setWeather(mode: WeatherCondition | 'auto'): void
   resetPlayer(): void
   interact(): string | null
@@ -58,7 +62,7 @@ export const INITIAL_SNAPSHOT: WorldSnapshot = {
   ready: false, fps: 0, frameMs: 0, p95Ms: 0, drawCalls: 0, triangles: 0,
   player: { x: 0, y: 0, z: 12 }, time: 9.5, nearLandmark: null, discovered: new Set(),
   npcCount: 0, petalCount: 0, activeQuality: 'HIGH', renderScale: 1.5,
-  wind: 0.6, backend: 'WebGL2', lighting: 'Hemisphere ambient + sun',
+  wind: 0.6, sakuraFallDensity: 1.0, bloomIntensity: 1.0, backend: 'WebGL2', lighting: 'Hemisphere ambient + sun',
   weather: 'sunny', cloudCover: 0, rainIntensity: 0, weatherAuto: true,
 }
 

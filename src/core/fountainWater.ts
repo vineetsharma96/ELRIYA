@@ -371,7 +371,7 @@ export class FountainWaveGrid {
   }
 }
 
-export const enum DropletKind {
+export enum DropletKind {
   CrownPlume = 0,
   UpperSpill = 1,
   MidCascade = 2,

@@ -803,32 +803,51 @@ export function PlazaFountain({ wind, lightingState, simulation, lowDetail }: Pl
     }
   }, [gl, simulator, gridSize, radialSegments, lowDetail])
 
-  // Dispose all procedurally allocated GPU resources on unmount or quality rebuild
+  // Dispose GPU resources safely without breaking under React 19 StrictMode double-mount
+  const activeResourcesRef = useRef<typeof resources | null>(null)
   useEffect(() => {
+    activeResourcesRef.current = resources
     return () => {
-      resources.stoneMap.dispose()
-      resources.stoneBump.dispose()
-      resources.mosaicMap.dispose()
-      resources.waveTexture.dispose()
-      Object.values(resources.geometries).forEach(g => g.dispose())
-      resources.streamGeometry.dispose()
-      resources.carvedStoneMat.dispose()
-      resources.wetStoneMat.dispose()
-      resources.plinthStoneMat.dispose()
-      resources.bronzeMat.dispose()
-      resources.mosaicMat.dispose()
-      resources.dropletGeo.dispose()
-      resources.dropletMat.dispose()
-      resources.uplightLensMat.dispose()
-      resources.mainWaterMat.dispose()
-      resources.midWaterMat.dispose()
-      resources.upperWaterMat.dispose()
-      resources.streamMat.dispose()
+      activeResourcesRef.current = null
+      const toDispose = resources
+      queueMicrotask(() => {
+        if (activeResourcesRef.current !== toDispose) {
+          toDispose.stoneMap.dispose()
+          toDispose.stoneBump.dispose()
+          toDispose.mosaicMap.dispose()
+          toDispose.waveTexture.dispose()
+          Object.values(toDispose.geometries).forEach(g => g.dispose())
+          toDispose.streamGeometry.dispose()
+          toDispose.carvedStoneMat.dispose()
+          toDispose.wetStoneMat.dispose()
+          toDispose.plinthStoneMat.dispose()
+          toDispose.bronzeMat.dispose()
+          toDispose.mosaicMat.dispose()
+          toDispose.dropletGeo.dispose()
+          toDispose.dropletMat.dispose()
+          toDispose.uplightLensMat.dispose()
+          toDispose.mainWaterMat.dispose()
+          toDispose.midWaterMat.dispose()
+          toDispose.upperWaterMat.dispose()
+          toDispose.streamMat.dispose()
+        }
+      })
     }
   }, [resources])
 
   // Populate static architectural detail InstancedMeshes once
   useLayoutEffect(() => {
+    if (
+      !pilasterRef.current ||
+      !pilasterCapRef.current ||
+      !fluteRef.current ||
+      !petalBracketRef.current ||
+      !rimNozzleRef.current ||
+      !midSpoutRef.current ||
+      !upperSpoutRef.current
+    ) {
+      return
+    }
     const dummy = new THREE.Object3D()
 
     // 8 Carved Perimeter Stone Pilasters & Caps at octagonal vertices
@@ -1100,6 +1119,7 @@ export function PlazaFountain({ wind, lightingState, simulation, lowDetail }: Pl
 
       {/* 13. Physics-Simulated Ballistic Water Droplets & Reactive Splash Crowns */}
       <instancedMesh
+        key={`droplets-${particleCount}`}
         ref={dropletMeshRef}
         args={[resources.dropletGeo, resources.dropletMat, particleCount]}
         frustumCulled={false}

@@ -119,7 +119,7 @@ export default function WorldMap({ snapshot, expanded = false }: { snapshot: Wor
           cx={tree.x}
           cy={tree.z}
           r={1.75 * tree.scale}
-          fill={index % 3 === 0 ? '#c8d7b4' : '#e6c8ce'}
+          fill={tree.species === 'green' ? '#a6c48a' : '#e8bcc8'}
           stroke="#faf4e8"
           strokeWidth="0.4"
         />

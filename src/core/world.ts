@@ -7,6 +7,7 @@ import type {
   RoadSegment,
   SidewalkRoute,
   StreetLampPlacement,
+  TreePlacement,
 } from './types';
 import bistroContract from '../../public/assets/architecture/blossom_bistro_contract.json';
 
@@ -135,6 +136,10 @@ const colliders: Collider[] = [
   })),
   // Central plaza fountain
   { x: 0, z: -5, halfX: 3, halfZ: 3 },
+  // Experimental detailed botanical tree planter beside the fountain
+  { x: 5.4, z: -3.6, halfX: 1.08, halfZ: 1.08 },
+  // Experimental Japanese Sakura tree planter next to the experimental botanical tree
+  { x: 5.4, z: -8.6, halfX: 1.08, halfZ: 1.08 },
   // Canal banks: open at central Sunpetal pedestrian bridge (x in [-4, 4])
   // and open at West/East 2-lane vehicular bridges (x in [-42.3, -33.7] and [33.7, 42.3])
   { x: -18.85, z: -27, halfX: 14.85, halfZ: 4 },
@@ -251,7 +256,7 @@ function isClearOfRoadsAndPaths(x: number, z: number): boolean {
 
 function createPlanting() {
   const random = seededRandom(SEED);
-  const trees: (Point2 & { scale: number })[] = [];
+  const trees: TreePlacement[] = [];
 
   // Boulevard avenue rows (South, North, West, East, Canal banks, and Plaza frame)
   const boulevardCandidates: Point2[] = [
@@ -281,13 +286,25 @@ function createPlanting() {
     { x: -8, z: -6 }, { x: 8, z: -6 }, { x: -8, z: 2 }, { x: 8, z: 2 },
   ];
 
+  // Keep a clear buffer around the two showcase plaza trees next to the fountain
+  const heroTreeKeepout: Point2[] = [
+    { x: 5.4, z: -3.6 },
+    { x: 5.4, z: -8.6 },
+  ];
+
   for (const pt of boulevardCandidates) {
     const jitterX = (random() - 0.5) * 0.7;
     const jitterZ = (random() - 0.5) * 0.7;
     const x = Number((pt.x + jitterX).toFixed(2));
     const z = Number((pt.z + jitterZ).toFixed(2));
-    if (isClearOfRoadsAndPaths(x, z)) {
-      trees.push({ x, z, scale: 0.82 + random() * 0.42 });
+    const clearOfHero = heroTreeKeepout.every(h => Math.hypot(x - h.x, z - h.z) >= 2.8);
+    if (clearOfHero && isClearOfRoadsAndPaths(x, z)) {
+      const idx = trees.length;
+      const scale = Number((0.78 + random() * 0.36).toFixed(3));
+      const species = random() < 0.5 ? 'sakura' : 'green';
+      const seed = 100003 + idx * 7919 + Math.floor(random() * 4093);
+      const rotation = Number((random() * Math.PI * 2).toFixed(3));
+      trees.push({ x, z, scale, species, seed, rotation });
     }
   }
 
@@ -371,13 +388,13 @@ export const BLENDKIT_CATALOG: BlendKitAssetMeta[] = [
   },
   {
     id: 'bk-sakura-tree',
-    name: 'Sakura Canopy Tree & Wind Shader',
+    name: 'Procedural Sakura & Botanical Green Grove',
     category: 'Vegetation',
     triangles: 2796,
     instances: 112,
     sourceUrl: 'https://www.blendkit.com/assets/vegetation/sakura-canopy',
     license: 'CC0 / Free Commercial',
-    description: 'GPU-instanced cherry blossom trees with multi-cluster pink crowns and vertex wind sway.',
+    description: 'Unique multi-order branching sakura and deciduous green trees with individual branch maps and backlit wind-swaying foliage.',
   },
   {
     id: 'bk-flower-beds',

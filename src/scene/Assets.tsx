@@ -5,11 +5,14 @@ import { clone } from 'three/addons/utils/SkeletonUtils.js'
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js'
 import * as THREE from 'three'
 import type { SimulationState } from '../core/types'
+import {
+  buildCharacterParts,
+  disposeCharacterParts,
+  type CharacterKind,
+  type CharacterMeshPart,
+} from './characterGeometry'
 
 export const ASSETS = {
-  protagonist: '/assets/characters/protagonist.glb',
-  companion: '/assets/characters/companion.glb',
-  citizen: '/assets/characters/citizen.glb',
   cafe: '/assets/architecture/cafe.glb',
   apartment: '/assets/architecture/apartment.glb',
   tower: '/assets/architecture/tower.glb',
@@ -113,15 +116,59 @@ export function Asset({ name, position = [0, 0, 0], rotation = 0, scale = 1, lit
   return <primitive object={object!} position={position} rotation-y={rotation} scale={scale} />
 }
 
+export function ProceduralCharacter({ kind, position = [0, 0, 0], rotation = 0, scale = 1, lite = false }: {
+  kind: CharacterKind
+  position?: [number, number, number]
+  rotation?: number
+  scale?: number
+  lite?: boolean
+}) {
+  const parts = useMemo(() => buildCharacterParts(kind, lite), [kind, lite])
+  const activePartsRef = useRef<CharacterMeshPart[] | null>(null)
+  useEffect(() => {
+    activePartsRef.current = parts
+    return () => {
+      activePartsRef.current = null
+      const oldParts = parts
+      queueMicrotask(() => {
+        if (activePartsRef.current !== oldParts) disposeCharacterParts(oldParts)
+      })
+    }
+  }, [parts])
+
+  return (
+    <group position={position} rotation-y={rotation} scale={scale}>
+      {parts.map(part => (
+        <mesh
+          key={part.name}
+          geometry={part.geometry}
+          material={part.material}
+          castShadow={!lite}
+          receiveShadow={!lite}
+          dispose={null}
+        />
+      ))}
+    </group>
+  )
+}
+
 export interface Placement { x: number; z: number; y?: number; scale?: number; rotation?: number }
 
-/** One batch per material, instead of one character draw stack per citizen. */
+/** One instanced batch per material, built procedurally in Three.js with zero GLB dependency. */
 export function Citizens({ simulation, count, lite = false }: { simulation: SimulationState; count: number; lite?: boolean }) {
-  const gltf = useLoader(GLTFLoader, ASSETS.citizen)
-  const parts = useMemo(() => {
-    return lite ? [colourBatch(gltf.scene)] : assetParts(gltf.scene)
-  }, [gltf, lite])
-  return <group>{parts.map((part, i) => <CitizenPart key={i} {...part} simulation={simulation} count={count} />)}</group>
+  const parts = useMemo(() => buildCharacterParts('citizen', lite), [lite])
+  const activePartsRef = useRef<CharacterMeshPart[] | null>(null)
+  useEffect(() => {
+    activePartsRef.current = parts
+    return () => {
+      activePartsRef.current = null
+      const oldParts = parts
+      queueMicrotask(() => {
+        if (activePartsRef.current !== oldParts) disposeCharacterParts(oldParts)
+      })
+    }
+  }, [parts])
+  return <group>{parts.map(part => <CitizenPart key={part.name} {...part} simulation={simulation} count={count} />)}</group>
 }
 
 const CITIZEN_TINTS = [
@@ -161,7 +208,7 @@ function CitizenPart({ geometry, material, matrix, simulation, count }: {
     ref.current.instanceMatrix.needsUpdate = true
     ref.current.computeBoundingSphere()
   })
-  return <instancedMesh key={safeCount} ref={ref} args={[geometry, material, safeCount]} castShadow receiveShadow />
+  return <instancedMesh key={safeCount} ref={ref} args={[geometry, material, safeCount]} castShadow receiveShadow dispose={null} />
 }
 
 export interface WindField { value: number; time: number }
