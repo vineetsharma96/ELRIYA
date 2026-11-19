@@ -15,11 +15,21 @@ export default function WorldMap({ snapshot, expanded = false }: { snapshot: Wor
       <rect x={bounds.minX - 4} y={bounds.minZ - 4} width={width + 8} height={height + 8} fill="#edf0d8" />
       <rect x={bounds.minX} y={bounds.minZ} width={width} height={height} rx="5" fill="#e4e9ce" stroke="#d3dcc2" strokeWidth="0.5" />
 
-      {/* Sunpetal Canal water */}
-      <rect x={bounds.minX} y={-31} width={width} height={8} fill="#9dcfc8" />
+      {/* Sunpetal Canal water channel */}
+      <rect x={bounds.minX} y={-31} width={width} height={8} fill="#88c2ba" opacity="0.45" />
+      {WORLD.canalWaterSegments.map(span => (
+        <rect
+          key={span.id}
+          x={span.x - span.width / 2}
+          y={span.z - span.depth / 2}
+          width={span.width}
+          height={span.depth}
+          fill="#9dcfc8"
+        />
+      ))}
 
-      {/* 2-Lane Bidirectional Road Network + Dual Lane Center Dividers */}
-      {roadSegments.map(seg => {
+      {/* 2-Lane Bidirectional Road Network + Dual Lane Center Dividers (non-bridge segments first, bridges on top) */}
+      {[...roadSegments.filter(s => !s.isBridge), ...roadSegments.filter(s => s.isBridge)].map(seg => {
         const w = seg.orientation === 'horizontal' ? seg.length : seg.width
         const h = seg.orientation === 'horizontal' ? seg.width : seg.length
         return (
@@ -29,10 +39,10 @@ export default function WorldMap({ snapshot, expanded = false }: { snapshot: Wor
               y={seg.z - h / 2}
               width={w}
               height={h}
-              rx="1.2"
-              fill="#b8c4bc"
-              stroke="#d9dec8"
-              strokeWidth="0.45"
+              rx={seg.isBridge ? '0.6' : '1.2'}
+              fill={seg.isBridge ? '#aebcb3' : '#b8c4bc'}
+              stroke={seg.isBridge ? '#f3ebd4' : '#d9dec8'}
+              strokeWidth={seg.isBridge ? '0.7' : '0.45'}
             />
             {seg.orientation === 'horizontal' ? (
               <line
@@ -47,9 +57,9 @@ export default function WorldMap({ snapshot, expanded = false }: { snapshot: Wor
             ) : (
               <line
                 x1={seg.x}
-                y1={seg.z - h / 2 + 2}
+                y1={seg.z - h / 2 + 1.2}
                 x2={seg.x}
-                y2={seg.z + h / 2 - 2}
+                y2={seg.z + h / 2 - 1.2}
                 stroke="#f4df9d"
                 strokeWidth="0.55"
                 strokeDasharray="2.2 1.6"

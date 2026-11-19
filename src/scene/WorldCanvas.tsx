@@ -4,6 +4,7 @@ import * as THREE from 'three'
 import { Asset, Citizens } from './Assets'
 import { TrafficFleet } from './BlendKitAssets'
 import { Terrain, createCanalMaterial } from './Terrain'
+import { PlazaFountain } from './PlazaFountain'
 import { Petals, RainDrops } from './Petals'
 import { StreetLightingSystem } from './StreetLights'
 import { Ambience } from './audio'
@@ -83,7 +84,7 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
     onQualitySettings(settings)
     setDpr(Math.min(window.devicePixelRatio || 1, settings.renderScale))
     gl.shadowMap.enabled = settings.shadows
-    gl.shadowMap.type = THREE.PCFSoftShadowMap
+    gl.shadowMap.type = THREE.PCFShadowMap
     gl.shadowMap.needsUpdate = true
     if (camera instanceof THREE.PerspectiveCamera) {
       camera.far = settings.drawDistance + 70
@@ -281,7 +282,7 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
       bistroInteriorRef.current.visible = bistroVisibility.shouldRenderInterior({ x: camera.position.x, z: camera.position.z })
     }
 
-    // Update 3D spatial audio listener and localized cherry blossom cluster birdsong
+    // Update 3D spatial audio listener, weather-reactive soundscape, and localized cherry blossom cluster birdsong
     movement.direction.subVectors(target, camera.position).normalize()
     const spatialAudio = ambience.updateSpatial(
       {
@@ -292,10 +293,16 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
         forwardY: movement.direction.y,
         forwardZ: movement.direction.z,
       },
-      env.daylight * (1 - env.rainIntensity * 0.65),
+      env.daylight,
       wind.value,
-      delta
+      delta,
+      {
+        condition: env.weatherCondition,
+        cloudCover: env.cloudCover,
+        rainIntensity: env.rainIntensity,
+      }
     )
+    const weatherAudioMix = ambience.getWeatherMix()
 
     const now = performance.now()
     const measuredMs = rawDelta * 1000
@@ -334,6 +341,7 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
         bistroUnlocked: bistroEncounter.isUnlocked(),
         spatialAudioCluster: spatialAudio.activeCluster ? `${spatialAudio.activeCluster.id} (${spatialAudio.activeCluster.treeCount} trees)` : 'None',
         spatialBirdIntensity: spatialAudio.intensity,
+        weatherAudioProfile: weatherAudioMix.label,
       }
       onSnapshotRef.current(snapshot.current)
     }
@@ -354,13 +362,12 @@ function Plaza({ apiRef, onSnapshot, paused, qualityMode, cameraMode, audioEnabl
     <mesh ref={sunDisc}><sphereGeometry args={[5, 16, 12]} /><meshBasicMaterial color="#fff0c5" fog={false} /></mesh>
     <mesh ref={moonDisc}><sphereGeometry args={[3.6, 16, 12]} /><meshBasicMaterial color="#e6e9ec" fog={false} /></mesh>
     <Terrain vegetationDensity={settings.vegetationDensity} lowDetail={quality.tier === 'LOW' || quality.tier === 'LITE'} wind={wind} bistroInteriorRef={bistroInteriorRef} />
+    <PlazaFountain wind={wind} lightingState={lightingController.state} simulation={simulation} lowDetail={quality.tier === 'LOW' || quality.tier === 'LITE'} />
     <StreetLightingSystem lightingState={lightingController.state} playerPosition={simulation.player} lite={quality.tier === 'LOW' || quality.tier === 'LITE'} />
-    {[
-      { x: -18.85, w: 29.7 },
-      { x: 18.85, w: 29.7 },
-      { x: -48.5, w: 11.6 },
-      { x: 48.5, w: 11.6 },
-    ].map(seg => <mesh key={seg.x} position={[seg.x, 0.016, -27]} rotation-x={-Math.PI / 2} material={water}><planeGeometry args={[seg.w, 7.8]} /></mesh>)}
+    {/* Recessed Sunpetal Canal animated water flowing beneath all three bridges at y = -0.14 */}
+    <mesh position={[0, -0.14, -27]} rotation-x={-Math.PI / 2} material={water}>
+      <planeGeometry args={[112, 7.8]} />
+    </mesh>
     <group ref={avatar}><Asset name="protagonist" lite={quality.tier === 'LOW' || quality.tier === 'LITE'} /></group>
     <group ref={companion}><Asset name="companion" lite={quality.tier === 'LOW' || quality.tier === 'LITE'} /></group>
     <group ref={shuttle} visible={false}><Asset name="shuttle" lite={quality.tier === 'LOW' || quality.tier === 'LITE'} /></group>

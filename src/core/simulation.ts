@@ -93,6 +93,35 @@ function shortestAngleDiff(from: number, to: number): number {
   return ((to - from + Math.PI) % TAU + TAU) % TAU - Math.PI;
 }
 
+interface CachedLoopRoute {
+  points: Point2[];
+  lengths: number[];
+  total: number;
+}
+
+const LOOP_CACHE_FORWARD = new WeakMap<Point2[], CachedLoopRoute>();
+const LOOP_CACHE_REVERSED = new WeakMap<Point2[], CachedLoopRoute>();
+
+function getCachedLoop(route: Point2[], reversed: boolean): CachedLoopRoute {
+  const cache = reversed ? LOOP_CACHE_REVERSED : LOOP_CACHE_FORWARD;
+  let entry = cache.get(route);
+  if (!entry) {
+    const points = reversed ? [...route].reverse() : route;
+    const n = points.length;
+    const lengths = new Array<number>(n);
+    let total = 0;
+    for (let i = 0; i < n; i++) {
+      const next = points[(i + 1) % n];
+      const len = Math.hypot(next.x - points[i].x, next.z - points[i].z);
+      lengths[i] = len;
+      total += len;
+    }
+    entry = { points, lengths, total };
+    cache.set(route, entry);
+  }
+  return entry;
+}
+
 /**
  * Shared pathfinding waypoint-loop follower for vehicles and autonomous sidewalk pedestrians.
  * Supports bidirectional traversal (reversed) and optional smooth corner yaw blending.
@@ -103,12 +132,8 @@ export function followLoop(
   reversed = false,
   cornerBlend = 0
 ): Point2 & { yaw: number } {
-  const ordered = reversed ? [...route].reverse() : route;
+  const { points: ordered, lengths, total } = getCachedLoop(route, reversed);
   const n = ordered.length;
-  const lengths = ordered.map((point, i) =>
-    Math.hypot(ordered[(i + 1) % n].x - point.x, ordered[(i + 1) % n].z - point.z)
-  );
-  const total = lengths.reduce((sum, length) => sum + length, 0);
   let remaining = ((distance % total) + total) % total;
   for (let i = 0; i < n; i++) {
     const segLen = lengths[i];

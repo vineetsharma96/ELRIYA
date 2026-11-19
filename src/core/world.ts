@@ -144,13 +144,37 @@ const colliders: Collider[] = [
 ];
 
 /**
+ * Sunpetal Canal Open Water Spans (z = -27, depth = 7.8m)
+ * Strictly disjoint from the Central Pedestrian Bridge (x in [-4, 4])
+ * and the West/East 2-Lane Vehicular Bridges (x in [-42.6, -33.4] and [33.4, 42.6]).
+ */
+export interface CanalWaterSegment {
+  id: string;
+  x: number;
+  z: number;
+  width: number;
+  depth: number;
+}
+
+export const CANAL_WATER_SEGMENTS: CanalWaterSegment[] = [
+  { id: 'canal-outer-west', x: -49.3, z: -27, width: 13.4, depth: 7.8 },
+  { id: 'canal-mid-west', x: -18.7, z: -27, width: 29.4, depth: 7.8 },
+  { id: 'canal-mid-east', x: 18.7, z: -27, width: 29.4, depth: 7.8 },
+  { id: 'canal-outer-east', x: 49.3, z: -27, width: 13.4, depth: 7.8 },
+];
+
+/**
  * 2-Lane Road Network Segments (8.4m wide roadbeds = two 4.2m directional lanes)
+ * West & East Boulevards are segmented into South and North spans around the canal
+ * so roadbed asphalt never overlaps the Sunpetal Canal water channel (z in [-31.6, -22.4]).
  */
 export const ROAD_SEGMENTS: RoadSegment[] = [
   { id: 'south-boulevard', x: 0, z: 36, length: 84.4, width: 8.4, orientation: 'horizontal', lanes: 2 },
   { id: 'north-boulevard', x: 0, z: -36, length: 84.4, width: 8.4, orientation: 'horizontal', lanes: 2 },
-  { id: 'west-boulevard', x: -38, z: 0, length: 80.4, width: 8.4, orientation: 'vertical', lanes: 2 },
-  { id: 'east-boulevard', x: 38, z: 0, length: 80.4, width: 8.4, orientation: 'vertical', lanes: 2 },
+  { id: 'west-boulevard-south', x: -38, z: 8.9, length: 62.6, width: 8.4, orientation: 'vertical', lanes: 2 },
+  { id: 'west-boulevard-north', x: -38, z: -35.9, length: 8.6, width: 8.4, orientation: 'vertical', lanes: 2 },
+  { id: 'east-boulevard-south', x: 38, z: 8.9, length: 62.6, width: 8.4, orientation: 'vertical', lanes: 2 },
+  { id: 'east-boulevard-north', x: 38, z: -35.9, length: 8.6, width: 8.4, orientation: 'vertical', lanes: 2 },
   { id: 'cross-avenue', x: 0, z: 20.5, length: 68, width: 7.6, orientation: 'horizontal', lanes: 2 },
   { id: 'west-canal-bridge', x: -38, z: -27, length: 9.2, width: 8.8, orientation: 'vertical', lanes: 2, isBridge: true },
   { id: 'east-canal-bridge', x: 38, z: -27, length: 9.2, width: 8.8, orientation: 'vertical', lanes: 2, isBridge: true },
@@ -491,6 +515,7 @@ export const WORLD = {
   buildings: BUILDINGS,
   colliders,
   roadSegments: ROAD_SEGMENTS,
+  canalWaterSegments: CANAL_WATER_SEGMENTS,
   streetLamps: STREET_LAMPS,
   citizenRoute: SIDEWALK_ROUTES[0].waypoints,
   sidewalkRoutes: SIDEWALK_ROUTES,

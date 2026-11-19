@@ -33,6 +33,7 @@ export interface WorldSnapshot {
   bistroUnlocked?: boolean
   spatialAudioCluster?: string | null
   spatialBirdIntensity?: number
+  weatherAudioProfile?: string
 }
 export interface WorldApi {
   setTime(hours: number): void
